@@ -18,6 +18,8 @@ export default function WordSearchGrid({
   const [current, setCurrent] = useState(null);
   const containerRef = useRef(null);
   const draggingRef = useRef(false);
+  const hasMovedRef = useRef(false);
+  const pointerStartRef = useRef(null);
 
   const activeCells = useMemo(() => {
     if (!start || !current) return [];
@@ -63,8 +65,15 @@ export default function WordSearchGrid({
     const cell = cellFromPointer(e);
     if (!cell) return;
     draggingRef.current = true;
-    setStart(cell);
-    setCurrent(cell);
+    hasMovedRef.current = false;
+    pointerStartRef.current = cell;
+    // If user already had a "first tap" anchor, keep it - second pointer-up will complete.
+    if (!start) {
+      setStart(cell);
+      setCurrent(cell);
+    } else {
+      setCurrent(cell);
+    }
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
   };
 
@@ -72,36 +81,42 @@ export default function WordSearchGrid({
     if (!draggingRef.current) return;
     const cell = cellFromPointer(e);
     if (!cell) return;
+    const startCell = pointerStartRef.current;
+    if (startCell && (cell.r !== startCell.r || cell.c !== startCell.c)) {
+      hasMovedRef.current = true;
+    }
     setCurrent(cell);
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e) => {
     if (!draggingRef.current) return;
     draggingRef.current = false;
-    if (start && current) {
-      const line = lineBetween(start, current);
-      if (line && line.length >= 2) {
-        onSelect?.(line);
+    const endCell = cellFromPointer(e) || current;
+    if (hasMovedRef.current) {
+      // Drag selection
+      if (start && endCell) {
+        const line = lineBetween(start, endCell);
+        if (line && line.length >= 2) onSelect?.(line);
       }
-    }
-    setStart(null);
-    setCurrent(null);
-  };
-
-  const handleCellClick = (r, c) => {
-    if (disabled) return;
-    // Tap-tap mode (for accessibility): first tap sets start, second tap completes
-    if (!start) {
-      setStart({ r, c });
-      setCurrent({ r, c });
+      setStart(null);
+      setCurrent(null);
       return;
     }
-    const line = lineBetween(start, { r, c });
-    if (line && line.length >= 2) {
-      onSelect?.(line);
+    // Tap (no movement)
+    if (start && endCell && (start.r !== endCell.r || start.c !== endCell.c)) {
+      // Second tap completes selection
+      const line = lineBetween(start, endCell);
+      if (line && line.length >= 2) onSelect?.(line);
+      setStart(null);
+      setCurrent(null);
+    } else {
+      // First tap: keep `start` set, await second tap
+      setCurrent(start);
     }
-    setStart(null);
-    setCurrent(null);
+  };
+
+  const handleCellClick = () => {
+    // Selection logic is handled in pointer events; click acts as a fallback no-op.
   };
 
   return (
@@ -125,7 +140,7 @@ export default function WordSearchGrid({
             <div
               key={key}
               data-testid={`grid-tile-${r}-${c}`}
-              onClick={() => handleCellClick(r, c)}
+              onClick={handleCellClick}
               className={[
                 "flex items-center justify-center font-bold transition-colors",
                 "text-[clamp(0.7rem,2.2vw,1.4rem)]",
