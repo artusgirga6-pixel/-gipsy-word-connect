@@ -38,6 +38,16 @@ This new game will be a 30-level Romani word search where completing every singl
 - Backend-synced progress with discovered phrases collection
 - Reset progress (with confirmation)
 
+### Phase 2 — Feb 2026
+- Onboarding modal with optional player name (gated by localStorage flag)
+- Leaderboard sheet showing top players sorted by completed level count then total best time
+- Per-level best time tracking (★ badge on level select tile + game header)
+- In-game running timer; reveal overlay shows time + best
+- Share buttons on level select (overall progress) and reveal overlay (phrase share) — Web Share API + clipboard fallback
+- Sound effects via Web Audio (find, complete, milestone fanfare, reveal sparkle, click); user-controllable mute toggle
+- Localization: Czech (default), English, Romanes — language switcher in header, persisted
+- Festive milestone treatment in reveal overlay (gradient + thick gold border + extra confetti volleys)
+
 ## Backlog / Next steps
 - P1: Per-level best time tracking and leaderboard view
 - P1: Optional player name in onboarding modal (currently anonymous)
