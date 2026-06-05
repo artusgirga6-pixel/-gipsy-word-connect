@@ -1,0 +1,101 @@
+{
+  "theme": {
+    "mode": "light",
+    "archetype": "6 (Vibrant Play) - Customized to 'Vibrant Folkloric'",
+    "description": "A playful, culturally rich interface that feels like a tactile, folkloric board game. Combines the high-energy, colorful aesthetic of 'Vibrant Play' with traditional Romani motifs (deep reds, golds, sapphire blues) over a warm, paper-like background."
+  },
+  "colors": {
+    "background": {
+      "base": "#FFFBF0",
+      "surface": "#FFFFFF",
+      "overlay": "rgba(45, 35, 35, 0.4)"
+    },
+    "text": {
+      "primary": "#2D2323",
+      "secondary": "#5C4B4B",
+      "inverse": "#FFFFFF",
+      "highlight": "#F5A623"
+    },
+    "brand": {
+      "primary": "#D92525",
+      "secondary": "#F5A623",
+      "tertiary": "#1E3A8A"
+    },
+    "ui": {
+      "success": "#2B8C44",
+      "locked": "#D1C7B1",
+      "border": "#E8DFCA",
+      "grid_tile_bg": "#F9F4E6",
+      "grid_highlight": "rgba(245, 166, 35, 0.5)"
+    }
+  },
+  "typography": {
+    "font_families": {
+      "heading": "Fredoka, sans-serif",
+      "body": "Nunito, sans-serif"
+    },
+    "hierarchy": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#D92525]",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl font-semibold text-[#1E3A8A]",
+      "h3": "text-xl sm:text-2xl font-semibold text-[#2D2323]",
+      "body": "text-base sm:text-lg text-[#5C4B4B] leading-relaxed",
+      "label": "text-sm uppercase tracking-[0.1em] font-bold text-[#D92525]",
+      "phrase_reveal": "text-3xl sm:text-5xl font-black text-[#F5A623] drop-shadow-md rotate-[-2deg]"
+    }
+  },
+  "spacing_and_layout": {
+    "general": "Generous padding. Use p-6, p-8, and p-12 to give the game a breathable, open feel.",
+    "level_select_screen": {
+      "strategy": "Asymmetrical Bento Grid. Avoid a monotonous 5x6 grid. Use grid-cols-4 md:grid-cols-6 lg:grid-cols-8 with gap-6. Make milestone levels (10, 20, 30) col-span-2 row-span-2 to emphasize progression.",
+      "item_style": "Tactile, rounded tiles (rounded-3xl) with subtle 3D 'clay' shadows (shadow-[0_4px_0_0_rgba(209,199,177,1)]). Active levels lift up on hover."
+    },
+    "gameplay_screen": {
+      "layout": "Mobile-first flex column. Top: Header (Progress & Reset). Middle: The Word Search Grid (aspect-square, max-w-2xl mx-auto). Bottom: Found words tag cloud.",
+      "grid_style": "Dense but legible. Grid container has rounded-2xl border-4 border-[#E8DFCA]. Individual letter tiles are transparent until selected. Selection strikethrough uses a pill-shaped vibrant SVG overlay."
+    }
+  },
+  "surface_strategies": {
+    "buttons": "Neumorphic / Clay feel. Background #D92525, heavy bottom shadow shadow-[0_4px_0_0_#A31A1A] for a pressable tactile feel. On active, translate-y-1 and remove shadow.",
+    "modals": "Soft glassmorphism with strong borders: backdrop-blur-xl bg-white/80 border-2 border-[#E8DFCA] rounded-3xl."
+  },
+  "motion_and_interaction": {
+    "hover_states": "Interactive elements should scale slightly (scale-105) and rotate slightly (rotate-1) to feel playful.",
+    "strikethrough": "When a word is successfully found, draw an SVG pill/line across the letters with an animation duration of 0.3s ease-out.",
+    "reveal_animation": "CRITICAL: When the last word is found, fade out all found words. The leftover letters should scale up, turn gold (#F5A623), and smoothly translate to the center of the screen to form the funny Romani phrase. Trigger confetti explosion simultaneously."
+  },
+  "components": {
+    "word_search_grid": "Custom HTML/React component. Needs pointer-events handling for drag-to-select (mouse/touch). Do not use Shadcn for the raw grid engine.",
+    "progress_bar": "Shadcn Progress component. Customize with rounded-full, h-4, bg-[#E8DFCA], and indicator bg-[#F5A623].",
+    "word_list": "Use flex-wrap gap-3 for words. Unfound words: bg-white text-[#5C4B4B] border-2 border-[#E8DFCA]. Found words: bg-[#2B8C44] text-white border-transparent scale-95 opacity-80 line-through.",
+    "icons": "lucide-react for UI icons (settings, reset, hint). Use thick, bold stroke widths (2.5 or 3)."
+  },
+  "assets_and_media": {
+    "image_urls": [
+      {
+        "url": "https://images.unsplash.com/photo-1740083652679-439b3dd548d3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzd8MHwxfHNlYXJjaHwxfHxjb2xvcmZ1bCUyMGZsb3JhbCUyMGZvbGslMjBwYXR0ZXJufGVufDB8fHx8MTc4MDY2ODEwNXww&ixlib=rb-4.1.0&q=85",
+        "category": "background_pattern",
+        "description": "Colorful floral border pattern with folk art style. Use as a low-opacity (5-10%) watermark background on the level select and gameplay screens to give it a culturally rich vibe."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1513151233558-d860c5398176?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwxfHxjZWxlYnJhdGlvbiUyMGNvbmZldHRpfGVufDB8fHx8MTc4MDY2ODEwNXww&ixlib=rb-4.1.0&q=85",
+        "category": "celebration",
+        "description": "Multicolor confetti. Use as an overlay image or reference for the CSS/Canvas confetti particle effect when completing a level."
+      }
+    ],
+    "libraries_to_add": [
+      "canvas-confetti (for the level completion explosion)",
+      "framer-motion (for the leftover letters dragging into place)"
+    ]
+  },
+  "accessibility_and_testing": {
+    "test_ids": {
+      "level_button": "data-testid='level-button-{id}'",
+      "grid_tile": "data-testid='grid-tile-{x}-{y}'",
+      "word_list_item": "data-testid='word-list-item-{word}'",
+      "reset_button": "data-testid='reset-game-button'",
+      "hint_button": "data-testid='hint-button'",
+      "reveal_phrase": "data-testid='reveal-phrase'"
+    },
+    "guidelines": "Ensure high contrast on the word search letters (Ink Black on Grid Tile Bg). Maintain minimum 4.5:1 contrast. Use focus rings for keyboard navigation."
+  }
+}
