@@ -176,9 +176,9 @@ export default function WordConnectGame() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FFFBF0] via-[#FFF6D9] to-[#FFE4B8] relative">
-      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+      <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
         {/* Header */}
-        <header className="flex items-center justify-between gap-2 mb-3">
+        <header className="flex items-center justify-between gap-2 mb-2">
           <Button
             data-testid="back-button"
             variant="outline"
@@ -212,7 +212,7 @@ export default function WordConnectGame() {
         </div>
 
         {/* Crossword */}
-        <div className="mb-6">
+        <div className="mb-3">
           <CrosswordBoard
             board={board}
             found={found}
@@ -222,7 +222,7 @@ export default function WordConnectGame() {
         </div>
 
         {/* Hint bar */}
-        <div className="flex items-center justify-center gap-3 mb-4">
+        <div className="flex items-center justify-center gap-2 mb-3">
           <Button
             data-testid="hint-hammer"
             onClick={handleHammer}

@@ -17,11 +17,11 @@ export default function WordCircle({ letters, onSubmit, disabled }) {
   const draggingRef = useRef(false);
   const pointerStartRef = useRef(null);
 
-  const size = 320;
+  const size = 260;
   const cx = size / 2;
   const cy = size / 2;
-  const ringR = size / 2 - 38;
-  const letterR = N <= 4 ? 30 : N <= 6 ? 26 : 22;
+  const ringR = size / 2 - 32;
+  const letterR = N <= 4 ? 26 : N <= 6 ? 22 : N <= 8 ? 19 : 16;
 
   const positions = useMemo(() => {
     return letters.map((_, i) => {
@@ -140,11 +140,11 @@ export default function WordCircle({ letters, onSubmit, disabled }) {
     : "";
 
   return (
-    <div className="w-full max-w-sm mx-auto select-none" data-testid="word-circle">
+    <div className="w-full max-w-[260px] sm:max-w-[300px] mx-auto select-none" data-testid="word-circle">
       {/* Active word preview */}
-      <div className="text-center mb-3 min-h-[42px]">
+      <div className="text-center mb-2 min-h-[36px]">
         <div
-          className="inline-block px-5 py-2 rounded-full bg-white/90 border-2 border-[#E8DFCA] font-black text-2xl tracking-[0.4em] text-[#1E3A8A] min-w-[140px]"
+          className="inline-block px-4 py-1.5 rounded-full bg-white/90 border-2 border-[#E8DFCA] font-black text-lg sm:text-xl tracking-[0.4em] text-[#1E3A8A] min-w-[110px]"
           style={{ fontFamily: "Fredoka, sans-serif" }}
           data-testid="word-preview"
         >
@@ -213,7 +213,7 @@ export default function WordCircle({ letters, onSubmit, disabled }) {
           onClick={handleSubmitTap}
           data-testid="word-submit"
           disabled={selected.length < 2}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white text-[#2D2323] font-black border-4 border-[#2D2323] shadow-md disabled:opacity-50"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white text-[#2D2323] font-black text-sm border-4 border-[#2D2323] shadow-md disabled:opacity-50"
           style={{ fontFamily: "Fredoka, sans-serif" }}
         >
           OK

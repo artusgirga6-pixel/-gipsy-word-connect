@@ -38,7 +38,18 @@ This new game will be a 30-level Romani word search where completing every singl
 - Backend-synced progress with discovered phrases collection
 - Reset progress (with confirmation)
 
-### Phase 3 — Feb 2026: Gipsy Word Connect rebuild
+### Phase 4 — Feb 2026: Capacitor + AdMob + shaped masks
+- **Capacitor 7.x** installed (`@capacitor/core/cli/android/ios`) — pinned to 7 because Capacitor 8 needs Node 22+ and the dev container is Node 20
+- **@capacitor-community/admob 7.x** integrated via `/app/frontend/src/lib/ads.js`
+  - Native: real `AdMob.prepareInterstitial/showInterstitial` and `prepareRewardVideoAd/showRewardVideoAd`
+  - Web preview: graceful no-op fallback → AdModal renders the existing 5-second simulator
+- **capacitor.config.ts** with Google's official test AdMob IDs (replace before publishing — instructions in `/app/memory/CAPACITOR.md`)
+- **`AdModal.jsx`** now auto-detects native platform and calls real AdMob; otherwise simulator
+- **Real shaped crossword masks** implemented:
+  - `/app/frontend/src/lib/shapeMasks.js` — heart, plus, diamond, rhombus, star, rect
+  - `/app/frontend/src/lib/crosswordPlacer.js` — seeded mulberry32 placer that places words inside mask, preferring intersections, with row-stack fallback
+  - `CrosswordBoard.jsx` renders mask-aware grid: active+used cells = letter slots, decorative cells = ghost background, blocked cells = transparent
+- **Native build doc**: `/app/memory/CAPACITOR.md` covers `yarn build → npx cap add android/ios → npx cap sync → npx cap open`, AdMob credential swap, SSV server-verification roadmap
 - App renamed to **Gipsy Word Connect**, browser title updated, default UI language set to **Romanes**
 - Total levels: **100**, strict alternating blocks (1-5 word_connect, 6-10 word_search, ...)
 - Three puzzle types:
