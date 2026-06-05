@@ -48,43 +48,45 @@ npx cap open ios        # opens Xcode (macOS only)
 
 From Android Studio / Xcode, press **Run** on a connected device or emulator.
 
-## AdMob credentials (production)
+## AdMob credentials (current state)
 
-The repo ships with **Google's official test AdMob units** — safe to use during
-development, **never serve real ad inventory**. Replace before publishing:
+The repo now ships with **your production AdMob App ID and interstitial unit**.
+Only the **Rewarded** ad unit still uses Google's test ID — create a Rewarded unit
+in your AdMob console and update both files below to fully go live.
 
-1. **App IDs** — update in `frontend/capacitor.config.ts`:
-   - `appIdAndroid`: `ca-app-pub-XXXX~YYYY`
-   - `appIdIos`: `ca-app-pub-XXXX~YYYY`
+Configured:
 
-2. **Native manifest** — Android:
-   - `android/app/src/main/res/values/strings.xml` add:
-     ```xml
-     <string name="admob_app_id">ca-app-pub-YOUR~ID</string>
-     ```
-   - `android/app/src/main/AndroidManifest.xml` add inside `<application>`:
-     ```xml
-     <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID"
-                android:value="@string/admob_app_id" />
-     ```
+- App ID (Android + iOS): `ca-app-pub-8757468659976693~4637205420`
+- Interstitial unit: `ca-app-pub-8757468659976693/2724827724`   ← PRODUCTION
+- Rewarded unit:     `ca-app-pub-3940256099942544/5224354917`   ← still TEST
 
-3. **Native plist** — iOS, `ios/App/App/Info.plist`:
+When you have a Rewarded unit, change these two lines:
+
+1. `frontend/capacitor.config.ts` → `plugins.AdMob.productionRewarded`
+2. `frontend/src/lib/ads.js` → `AD_UNITS.rewarded`
+
+### Android native manifest setup (run once)
+
+After `npx cap add android`:
+
+1. `android/app/src/main/res/values/strings.xml` — add:
    ```xml
-   <key>GADApplicationIdentifier</key>
-   <string>ca-app-pub-YOUR~ID</string>
-   <key>NSUserTrackingUsageDescription</key>
-   <string>This identifier will be used to deliver personalised ads to you.</string>
+   <string name="admob_app_id">ca-app-pub-8757468659976693~4637205420</string>
+   ```
+2. `android/app/src/main/AndroidManifest.xml` — inside `<application>`:
+   ```xml
+   <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID"
+              android:value="@string/admob_app_id" />
    ```
 
-4. **Ad unit IDs** — replace in `frontend/src/lib/ads.js`:
-   ```js
-   export const TEST_AD_UNITS = {
-     interstitial: "ca-app-pub-YOURPUB/UNIT1",
-     rewarded:     "ca-app-pub-YOURPUB/UNIT2",
-   };
-   ```
+### iOS Info.plist setup (when you register an iOS app in AdMob)
 
-5. **Set `isTesting: false`** in `frontend/src/lib/ads.js` (currently `true`).
+```xml
+<key>GADApplicationIdentifier</key>
+<string>ca-app-pub-8757468659976693~YOUR_IOS_APP_ID</string>
+<key>NSUserTrackingUsageDescription</key>
+<string>This identifier will be used to deliver personalised ads to you.</string>
+```
 
 ## How the runtime switching works
 

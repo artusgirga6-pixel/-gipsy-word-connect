@@ -14,14 +14,17 @@ const config: CapacitorConfig = {
   },
   plugins: {
     AdMob: {
-      // Google official test AdMob App IDs (sample, safe to use during dev).
-      // Replace with your real AdMob App IDs before publishing.
-      appIdAndroid: 'ca-app-pub-3940256099942544~3347511713',
-      appIdIos: 'ca-app-pub-3940256099942544~1458002511',
-      // Test ad unit IDs (also Google sample).
-      // Used by /app/frontend/src/lib/ads.js — keep in sync.
-      testInterstitial: 'ca-app-pub-3940256099942544/1033173712',
-      testRewarded: 'ca-app-pub-3940256099942544/5224354917',
+      // Production AdMob App ID (provided by app owner).
+      appIdAndroid: 'ca-app-pub-8757468659976693~4637205420',
+      // iOS app needs its own app ID once registered in AdMob console.
+      // Until then this falls back to the same Android ID (will not show ads on iOS).
+      appIdIos: 'ca-app-pub-8757468659976693~4637205420',
+      // Production ad units (kept in sync with frontend/src/lib/ads.js).
+      // Interstitial: production unit (provided).
+      productionInterstitial: 'ca-app-pub-8757468659976693/2724827724',
+      // Rewarded: NOT yet provided — using Google test ID until you create a
+      // Rewarded ad unit in AdMob console and update this value + ads.js.
+      productionRewarded: 'ca-app-pub-3940256099942544/5224354917',
     },
   },
 };
