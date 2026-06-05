@@ -38,15 +38,23 @@ This new game will be a 30-level Romani word search where completing every singl
 - Backend-synced progress with discovered phrases collection
 - Reset progress (with confirmation)
 
-### Phase 2 — Feb 2026
-- Onboarding modal with optional player name (gated by localStorage flag)
-- Leaderboard sheet showing top players sorted by completed level count then total best time
-- Per-level best time tracking (★ badge on level select tile + game header)
-- In-game running timer; reveal overlay shows time + best
-- Share buttons on level select (overall progress) and reveal overlay (phrase share) — Web Share API + clipboard fallback
-- Sound effects via Web Audio (find, complete, milestone fanfare, reveal sparkle, click); user-controllable mute toggle
-- Localization: Czech (default), English, Romanes — language switcher in header, persisted
-- Festive milestone treatment in reveal overlay (gradient + thick gold border + extra confetti volleys)
+### Phase 3 — Feb 2026: Gipsy Word Connect rebuild
+- App renamed to **Gipsy Word Connect**, browser title updated, default UI language set to **Romanes**
+- Total levels: **100**, strict alternating blocks (1-5 word_connect, 6-10 word_search, ...)
+- Three puzzle types:
+  - **word_connect**: letter circle (drag/tap) → fills a shaped crossword (6 shape themes: rect/heart/diamond/plus/rhombus/star); progressive difficulty 3 → 9 letters
+  - **word_search**: original mechanic (50 levels; 30 from phase 1 + 20 new)
+  - **anagram**: middle level of each word_connect block (3,13,23,...) — scrambled tiles → answer slots
+- **Bonus levels** at every 10th (10, 20, …, 100): word_search with leftover-letter funny phrase reveal
+- **Level 100** = grand finale, hidden phrase "Vyhral si vyraindal meliari topánka"
+- **Coins economy** (backend MongoDB):
+  - 100 starting coins for new players (init bonus)
+  - Hammer hint → simulated ad → reveal a letter/cells
+  - Lightbulb → simulated ad → +50 coins (ads_watched tracked)
+  - Buy word → −100 coins → reveal whole word
+- **Simulated AdModal** with 5s countdown (structured for AdMob SDK plug-in later)
+- **Romani congrats popup** with 11 progressive praise tiers (Lačhi goďi → Najbareder goďi pe svetos)
+- **Procedurally-generated Romani-style music** via Web Audio (10 melodies, auto-switch every 5 levels, user-toggleable, deferred until first user gesture)
 
 ## Backlog / Next steps
 - P1: Per-level best time tracking and leaderboard view
