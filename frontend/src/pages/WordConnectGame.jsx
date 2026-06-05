@@ -13,6 +13,7 @@ import CongratsToast from "@/components/CongratsToast";
 import { useProgress } from "@/hooks/useProgress";
 import { useI18n } from "@/i18n/I18nContext";
 import { playSound } from "@/lib/audio";
+import { placeCrossword } from "@/lib/crosswordPlacer";
 
 const WORD_REVEAL_COST = 100;
 const AD_COIN_REWARD = 50;
@@ -41,6 +42,9 @@ export default function WordConnectGame() {
     if (!level) return [];
     return shuffle(level.letters.split(""), level.id);
   }, [level]);
+
+  // Place words inside the shape mask
+  const board = useMemo(() => (level ? placeCrossword(level) : null), [level]);
 
   const [found, setFound] = useState(new Set());
   const [revealedLetters, setRevealedLetters] = useState(new Map()); // word → Set<index>
@@ -210,7 +214,7 @@ export default function WordConnectGame() {
         {/* Crossword */}
         <div className="mb-6">
           <CrosswordBoard
-            words={level.words}
+            board={board}
             found={found}
             revealedLetters={revealedLetters}
             shape={level.shape}

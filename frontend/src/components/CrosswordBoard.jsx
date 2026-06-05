@@ -1,84 +1,109 @@
-import React, { useMemo } from "react";
+import React from "react";
 
 /**
- * CrosswordBoard — renders the upper part of a Word Connect level: a vertical stack
- * of word slots, each consisting of N cells. Cells are revealed letter-by-letter as
- * the matching word is found.
+ * CrosswordBoard renders a shaped crossword. Cells outside the mask are decorative
+ * (transparent). Cells inside the mask but unused by any placement render as
+ * faint background squares; cells used by a word slot render as letter slots.
  *
- * Visual variety (shape prop): different background motifs frame the slot stack.
+ * Props:
+ *  - board: { mask, placements, rows, cols }
+ *  - found: Set<string> of found words
+ *  - revealedLetters: Map<word, Set<index>> for hammer hints
+ *  - shape: shape key (cosmetic)
  */
-const SHAPE_STYLES = {
-  rect:    { bg: "from-[#FFFBF0] to-[#F9F4E6]",   border: "border-[#E8DFCA]" },
-  heart:   { bg: "from-[#FFF1F2] to-[#FFE4E6]",   border: "border-[#D92525]" },
-  diamond: { bg: "from-[#EFF6FF] to-[#DBE7FE]",   border: "border-[#1E3A8A]" },
-  plus:    { bg: "from-[#F0FDF4] to-[#DCFCE7]",   border: "border-[#2B8C44]" },
-  rhombus: { bg: "from-[#FEF3C7] to-[#FDE68A]",   border: "border-[#F5A623]" },
-  star:    { bg: "from-[#FAE8FF] to-[#F3D2FF]",   border: "border-[#7E22CE]" },
+const SHAPE_THEME = {
+  rect:    { bg: "from-[#FFFBF0] to-[#F9F4E6]", border: "border-[#E8DFCA]", icon: "▦" },
+  heart:   { bg: "from-[#FFF1F2] to-[#FFE4E6]", border: "border-[#D92525]", icon: "♥" },
+  diamond: { bg: "from-[#EFF6FF] to-[#DBE7FE]", border: "border-[#1E3A8A]", icon: "◆" },
+  plus:    { bg: "from-[#F0FDF4] to-[#DCFCE7]", border: "border-[#2B8C44]", icon: "✚" },
+  rhombus: { bg: "from-[#FEF3C7] to-[#FDE68A]", border: "border-[#F5A623]", icon: "❖" },
+  star:    { bg: "from-[#FAE8FF] to-[#F3D2FF]", border: "border-[#7E22CE]", icon: "★" },
 };
 
-const SHAPE_ICON = {
-  heart: "♥", diamond: "◆", plus: "✚", rhombus: "❖", star: "★", rect: "▦",
-};
+export default function CrosswordBoard({ board, found, revealedLetters, shape = "rect" }) {
+  const t = SHAPE_THEME[shape] || SHAPE_THEME.rect;
+  const { mask, placements, rows, cols } = board;
 
-export default function CrosswordBoard({
-  words,
-  found,           // Set of words found so far
-  revealedLetters, // Map: word → array of revealed indices (for hammer hint)
-  shape = "rect",
-}) {
-  const s = SHAPE_STYLES[shape] || SHAPE_STYLES.rect;
-  const maxLen = useMemo(() => Math.max(...words.map((w) => w.length), 1), [words]);
+  // For each active mask cell, find which placement(s) own it and which letter index
+  const cellInfo = new Map(); // key → {letter, words: [{word, index}]}
+  for (const p of placements) {
+    p.cells.forEach((cell, i) => {
+      const key = `${cell.r},${cell.c}`;
+      const entry = cellInfo.get(key) || { letter: p.word[i], words: [] };
+      entry.letter = p.word[i];
+      entry.words.push({ word: p.word, index: i });
+      cellInfo.set(key, entry);
+    });
+  }
+
+  // Adaptive cell size: bigger for smaller grids
+  const dim = Math.max(rows, cols);
+  const cellSizeCls = dim <= 7 ? "w-9 h-9 sm:w-11 sm:h-11" : "w-7 h-7 sm:w-9 sm:h-9";
+  const textCls = dim <= 7 ? "text-lg sm:text-2xl" : "text-sm sm:text-lg";
 
   return (
     <div
       className={[
-        "relative w-full max-w-md mx-auto rounded-3xl border-4 p-4 sm:p-6 bg-gradient-to-br shadow-[0_8px_0_0_rgba(0,0,0,0.08)]",
-        s.bg,
-        s.border,
+        "relative w-full max-w-md mx-auto rounded-3xl border-4 p-3 sm:p-5 bg-gradient-to-br shadow-[0_8px_0_0_rgba(0,0,0,0.08)]",
+        t.bg, t.border,
       ].join(" ")}
       data-testid="crossword-board"
     >
-      <div className="absolute top-2 right-3 text-2xl opacity-30 pointer-events-none">
-        {SHAPE_ICON[shape] || "▦"}
-      </div>
-      <div className="space-y-2 sm:space-y-3">
-        {words.map((word) => {
-          const isFound = found.has(word);
-          const reveals = revealedLetters?.get(word) || new Set();
-          return (
-            <div
-              key={word}
-              className="flex justify-center gap-1.5 sm:gap-2"
-              data-testid={`crossword-row-${word}`}
-            >
-              {word.split("").map((ch, i) => {
-                const visible = isFound || reveals.has(i);
-                return (
-                  <div
-                    key={i}
-                    data-testid={`crossword-cell-${word}-${i}`}
-                    className={[
-                      "flex items-center justify-center font-black border-2 rounded-md transition-all",
-                      "w-9 h-9 sm:w-11 sm:h-11 text-base sm:text-2xl",
-                      visible
-                        ? isFound
-                          ? "bg-[#2B8C44] text-white border-[#1F6E33]"
-                          : "bg-[#F5A623] text-white border-[#A36A00]"
-                        : "bg-white/80 text-transparent border-[#5C4B4B]/30",
-                    ].join(" ")}
-                    style={{ fontFamily: "Fredoka, sans-serif" }}
-                  >
-                    {visible ? ch : "·"}
-                  </div>
-                );
-              })}
-              {/* Pad to maxLen for alignment when slots differ */}
-              {Array.from({ length: Math.max(0, maxLen - word.length) }).map((_, i) => (
-                <div key={`pad-${i}`} className="w-9 h-9 sm:w-11 sm:h-11" />
-              ))}
-            </div>
-          );
-        })}
+      <div className="absolute top-2 right-3 text-2xl opacity-30 pointer-events-none">{t.icon}</div>
+      <div
+        className="grid mx-auto"
+        style={{
+          gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+          gap: "3px",
+          width: "fit-content",
+        }}
+      >
+        {mask.map((row, r) =>
+          row.map((isActive, c) => {
+            const key = `${r},${c}`;
+            const info = cellInfo.get(key);
+            if (!isActive) {
+              return <div key={key} className={cellSizeCls} aria-hidden />;
+            }
+            if (!info) {
+              // active but unused — decorative tile of the shape
+              return (
+                <div
+                  key={key}
+                  className={`${cellSizeCls} rounded-sm bg-white/30 border border-white/40`}
+                  aria-hidden
+                />
+              );
+            }
+            // Cell belongs to one or more placements
+            const isFoundAny = info.words.some((w) => found.has(w.word));
+            const isRevealedAny = info.words.some((w) => {
+              const r2 = revealedLetters?.get(w.word);
+              return r2 && r2.has(w.index);
+            });
+            const visible = isFoundAny || isRevealedAny;
+            return (
+              <div
+                key={key}
+                data-testid={`crossword-cell-${r}-${c}`}
+                data-cell-word={info.words.map((w) => w.word).join(",")}
+                className={[
+                  "flex items-center justify-center font-black border-2 rounded-md transition-all",
+                  cellSizeCls,
+                  textCls,
+                  visible
+                    ? isFoundAny
+                      ? "bg-[#2B8C44] text-white border-[#1F6E33]"
+                      : "bg-[#F5A623] text-white border-[#A36A00]"
+                    : "bg-white text-transparent border-[#5C4B4B]/30",
+                ].join(" ")}
+                style={{ fontFamily: "Fredoka, sans-serif" }}
+              >
+                {visible ? info.letter : "·"}
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

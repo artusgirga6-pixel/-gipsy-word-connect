@@ -1,38 +1,66 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Tv, Skull } from "lucide-react";
+import { Tv } from "lucide-react";
 import { useI18n } from "@/i18n/I18nContext";
+import { showInterstitial, showRewarded, ads } from "@/lib/ads";
 
 /**
- * Simulated full-screen AdModal. Designed so a real AdMob/AdSense call could be slotted
- * in by replacing the simulated countdown with the SDK callback (onAdClosed → onComplete).
+ * AdModal — shows either a real AdMob ad (when running in Capacitor native build)
+ * or a simulated 5-second placeholder (web preview / desktop browsers).
  *
  * Props:
  *  - open: boolean
- *  - duration: countdown seconds (default 5)
- *  - reason: label shown ("ad_reward", "interstitial", "hint")
- *  - onComplete: invoked when the ad finishes (or user skips after countdown)
+ *  - duration: simulated countdown seconds (default 5)
+ *  - reason: 'interstitial' | 'hint_letter' | 'ad_reward'
+ *  - onComplete: invoked when the ad finishes (or skipped)
  */
 export default function AdModal({ open, duration = 5, reason = "interstitial", onComplete }) {
   const { t } = useI18n();
   const [remaining, setRemaining] = useState(duration);
+  const [nativeShown, setNativeShown] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setRemaining(duration);
-    const id = setInterval(() => {
-      setRemaining((r) => {
-        if (r <= 1) {
-          clearInterval(id);
-          return 0;
-        }
-        return r - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, [open, duration]);
+    setNativeShown(false);
+
+    // Try real AdMob first (only resolves on native + plugin available).
+    if (ads.isNative()) {
+      const run = async () => {
+        try {
+          const result = reason === "interstitial"
+            ? await showInterstitial()
+            : await showRewarded(reason);
+          if (result?.native) {
+            setNativeShown(true);
+            onComplete?.();
+            return;
+          }
+        } catch {}
+        // fallback to simulator if native attempt fails
+        startSim();
+      };
+      run();
+      return;
+    }
+    startSim();
+
+    function startSim() {
+      const id = setInterval(() => {
+        setRemaining((r) => {
+          if (r <= 1) { clearInterval(id); return 0; }
+          return r - 1;
+        });
+      }, 1000);
+      return () => clearInterval(id);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, duration, reason]);
 
   const skippable = remaining === 0;
+
+  // If a real native ad was shown the overlay self-closed via onComplete.
+  if (nativeShown) return null;
 
   return (
     <AnimatePresence>

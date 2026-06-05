@@ -1,0 +1,30 @@
+{
+  "summary": "Iteration 5 frontend-only retest after Phase 4 Capacitor + AdMob + shaped-mask + crossword-placer additions. All 6 critical flows from review_request PASSED. (1) Home / renders h1 '100 ranga · Romane khelipena', 100 level-button-{id} tiles, coins-amount = 100. (2) /level/2 (DAD heart) — crossword-board renders, circle letters ['A','D','D'], tapping indices [1,0,2] builds preview 'DAD', word-submit fills crossword cells with D,A,D (cells matched via data-cell-word attr, NOT hard-coded coords), congrats-toast 'Lačhi goďi!' shown. (3) /level/4 — actual level is KAM diamond (review_request mentioned KHER but level 4 maps to pool index 2 = KAM/diamond after wcQueue.shift with anagram at id 3; KHER lives on level 5). Solved KAM, crossword fills K,A,M, congrats fires. (4) /level/12 MARO heart — letters ['A','M','O','R'], sequence [1,0,3,2] → MARO, cells fill M,A,R,O, congrats fires. (5) Lightbulb hint on /level/1 with coins=100 → ad-modal opens with 5s countdown (data-testid='ad-countdown' shows '5s'), waited for ad-skip-button to enable, clicked → coins now 150 (exactly +50). Web fallback path in ads.js verified (no native plugin in browser). (6) ZERO console errors detected during the entire run, including ZERO AdMob/@capacitor-community related runtime errors. Source-map warnings about missing .ts files in node_modules are build-time only (webpack warnings, not runtime console errors) and per other_misc_info are expected. Backend not retested per instruction.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_5.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ads.js — clean separation. isNative() guards both Capacitor.isNativePlatform() and isPluginAvailable('AdMob'); web returns {native:false} and AdModal correctly falls back to 5s simulator. Dynamic import keeps admob out of the critical path. Good design.",
+    "AdModal.jsx — useEffect kicks off native attempt only when ads.isNative() is true; otherwise startSim() runs. setRemaining(duration) is reset on each open. Skip button disabled until remaining===0. Verified empirically: 5s countdown elapses, skip clickable, onComplete fires.",
+    "shapeMasks.js — 6 masks defined. heart/plus/diamond/rhombus/star/rect all valid 2D boolean arrays. getMask() defensively falls back to rect for unknown shapes.",
+    "crosswordPlacer.js — placement explores all r/c × H/V candidates inside the mask, prefers max intersections, uses seeded rng for determinism (mulberry32 with level.id), 40 attempts with seed variance for robustness, and a deterministic fallback row-stacker. Single-word levels (1-letter slot list) trivially place. Verified at levels 2,4,12 that placement is fully inside the mask and cells expose data-cell-word attribute for testing.",
+    "CrosswordBoard.jsx — emits data-testid='crossword-cell-{r}-{c}' and data-cell-word for every active+used cell, decorative cells outside mask are aria-hidden empty divs (no testid pollution). Cell visibility correctly tied to found-word state.",
+    "Minor (non-blocking): WordCircle letter pool indices are pool-position based (the shuffle is seeded per level.id), so test scripts must read the rendered text content of each circle-letter-N rather than assume the pool order matches the level data string. (Already documented in iter4 context_for_next_testing_agent.)",
+    "Minor (non-blocking): Source-map warnings from @capacitor-community/admob (missing src/*.ts in node_modules) clutter the dev build output. Adding source-map-loader excludes for that package in CRACO would silence them but is purely cosmetic."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not retested (skip per instruction; iter 3 was 100%)", "frontend": "100% (6/6 critical flows)"},
+  "test_credentials": "n/a",
+  "seed_data_creation": "Reset localStorage.romword_progress_v1 to {coins:100, completed:[], lastVisitedLevel:1} and localStorage.romword_onboarded='1' before each independent test to guarantee deterministic coin state. No backend seed data created.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Critical selectors used: home tiles=[data-testid^='level-button-'] (NOT 'level-tile-'); coin balance=[data-testid='coins-amount'] (NOT 'coin-balance'); crossword cells=[data-testid='crossword-cell-{r}-{c}'] with a data-cell-word='WORD1,WORD2' attribute — always identify cells by data-cell-word rather than hard-coding row/col since the placer's mulberry32 rng may shift placement with code changes. WordCircle letters are shuffled per level.id; always read the rendered text of [data-testid='circle-letter-{i}'] to compute click sequence. Note about review_request: /level/4 is KAM diamond, NOT KHER rhombus — KHER rhombus is /level/5 because the anagram replaces the 3rd slot of each word_connect block (level 3, 13, …) shifting wc queue by one. AdMob test ad units in capacitor.config.ts and ads.js verified — TEST_AD_UNITS uses official Google test IDs. Production native build instructions in /app/memory/CAPACITOR.md (not validated here since web preview cannot exercise Capacitor.isNativePlatform()==true).",
+  "rca of the issue": "No bugs found — all 6 review_request items pass. Phase 4 additions (Capacitor 7.x install, ads.js wrapper, AdMob plugin dynamic import, 6 shape masks, intersection-preferring placer, CrosswordBoard with grid-coord testids) do NOT regress web preview. The dev-build source-map warnings about @capacitor-community/admob src/*.ts files are HARMLESS (build-time webpack warnings, zero runtime impact, zero console errors). Single minor discrepancy: review_request stated level/4 is KHER rhombus; actual mapping puts KAM diamond at level 4 and KHER rhombus at level 5 — both rendered correctly with their respective masks, so this is a doc-accuracy nit, not a code bug."
+}

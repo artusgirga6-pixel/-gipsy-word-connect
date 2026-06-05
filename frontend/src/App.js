@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LevelSelect from "@/pages/LevelSelect";
@@ -6,8 +6,12 @@ import GameRouter from "@/pages/GameRouter";
 import { Toaster } from "@/components/ui/sonner";
 import { I18nProvider } from "@/i18n/I18nContext";
 import MusicPlayer from "@/components/MusicPlayer";
+import { initAds } from "@/lib/ads";
 
 function App() {
+  useEffect(() => {
+    initAds().catch(() => {});
+  }, []);
   return (
     <div className="App">
       <I18nProvider>
