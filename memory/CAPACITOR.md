@@ -54,16 +54,11 @@ The repo now ships with **your production AdMob App ID and interstitial unit**.
 Only the **Rewarded** ad unit still uses Google's test ID — create a Rewarded unit
 in your AdMob console and update both files below to fully go live.
 
-Configured:
+Configured (all production, `isTesting: false`):
 
 - App ID (Android + iOS): `ca-app-pub-8757468659976693~4637205420`
-- Interstitial unit: `ca-app-pub-8757468659976693/2724827724`   ← PRODUCTION
-- Rewarded unit:     `ca-app-pub-3940256099942544/5224354917`   ← still TEST
-
-When you have a Rewarded unit, change these two lines:
-
-1. `frontend/capacitor.config.ts` → `plugins.AdMob.productionRewarded`
-2. `frontend/src/lib/ads.js` → `AD_UNITS.rewarded`
+- Interstitial unit: `ca-app-pub-8757468659976693/2724827724`
+- Rewarded unit:     `ca-app-pub-8757468659976693/2929372083`
 
 ### Android native manifest setup (run once)
 

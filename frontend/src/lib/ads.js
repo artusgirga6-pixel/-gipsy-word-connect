@@ -7,12 +7,10 @@
 
 import { Capacitor } from "@capacitor/core";
 
-// Production AdMob unit IDs. The interstitial unit is real (provided by the
-// app owner); the rewarded unit is still the Google test ID until you create
-// a Rewarded ad unit in the AdMob console and replace it here.
+// Production AdMob unit IDs (all production — no test units anymore).
 export const AD_UNITS = {
-  interstitial: "ca-app-pub-8757468659976693/2724827724",   // PRODUCTION
-  rewarded:     "ca-app-pub-3940256099942544/5224354917",   // TEST — replace when ready
+  interstitial: "ca-app-pub-8757468659976693/2724827724",
+  rewarded:     "ca-app-pub-8757468659976693/2929372083",
 };
 
 // Backwards-compat export expected by older imports.
@@ -73,7 +71,7 @@ export async function showRewarded(reason = "hint") {
     const { AdMob } = await getAdmob();
     await AdMob.prepareRewardVideoAd({
       adId: AD_UNITS.rewarded,
-      isTesting: true,
+      isTesting: false,
     });
     const reward = await AdMob.showRewardVideoAd();
     return { native: true, rewarded: !!reward, reason, reward };

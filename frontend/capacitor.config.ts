@@ -22,9 +22,8 @@ const config: CapacitorConfig = {
       // Production ad units (kept in sync with frontend/src/lib/ads.js).
       // Interstitial: production unit (provided).
       productionInterstitial: 'ca-app-pub-8757468659976693/2724827724',
-      // Rewarded: NOT yet provided — using Google test ID until you create a
-      // Rewarded ad unit in AdMob console and update this value + ads.js.
-      productionRewarded: 'ca-app-pub-3940256099942544/5224354917',
+      // Rewarded ad unit: production.
+      productionRewarded: 'ca-app-pub-8757468659976693/2929372083',
     },
   },
 };
