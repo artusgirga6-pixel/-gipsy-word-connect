@@ -1,0 +1,43 @@
+workflows:
+  android-build:
+    name: Gipsy Word Connect — Android APK
+    max_build_duration: 30
+    instance_type: linux_x2
+    environment:
+      vars:
+        NODE_VERSION: 20
+        JAVA_VERSION: 17
+      node: 20
+      java: 17
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: 'main'
+        - pattern: 'master'
+    scripts:
+      - name: Install yarn deps
+        working_directory: frontend
+        script: |
+          yarn install --frozen-lockfile --ignore-engines
+      - name: Build web bundle
+        working_directory: frontend
+        script: yarn build
+      - name: Capacitor sync
+        working_directory: frontend
+        script: npx cap sync android
+      - name: Gradle build APK
+        working_directory: frontend/android
+        script: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease assembleDebug --no-daemon --stacktrace
+    artifacts:
+      - frontend/android/app/build/outputs/apk/release/*.apk
+      - frontend/android/app/build/outputs/apk/debug/*.apk
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com   # replace if you want notifications
+        notify:
+          success: true
+          failure: true
