@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { LEVELS } from "@/data/levels";
-import { Lock, Check, Crown, Sparkles, RotateCcw, Trophy, Share2 } from "lucide-react";
+import { Lock, Check, Crown, Sparkles, RotateCcw, Trophy, Share2, Type, Circle, Shuffle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useProgress } from "@/hooks/useProgress";
@@ -9,10 +9,17 @@ import { useI18n } from "@/i18n/I18nContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import LeaderboardSheet from "@/components/LeaderboardSheet";
 import OnboardingModal from "@/components/OnboardingModal";
+import CoinsDisplay from "@/components/CoinsDisplay";
 import { shareOrCopy } from "@/lib/share";
 import { toast } from "sonner";
 
 const ONBOARDING_KEY = "romword_onboarded";
+
+const TYPE_ICON = {
+  word_search: Type,
+  word_connect: Circle,
+  anagram: Shuffle,
+};
 
 export default function LevelSelect() {
   const { progress, loading, reset, saveName } = useProgress();
@@ -87,6 +94,7 @@ export default function LevelSelect() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <CoinsDisplay coins={progress?.coins ?? 0} />
               <LanguageSwitcher />
               <Button
                 data-testid="leaderboard-button"
@@ -156,10 +164,11 @@ export default function LevelSelect() {
 
               const inner = (
                 <div className={`${base} ${stateCls} ${span}`} data-testid={`level-button-${lvl.id}`}>
-                  {/* Festive sparkle layer for milestone & final tiles */}
-                  {isMilestone && isUnlocked && (
-                    <Sparkles className="absolute top-2 left-2 w-4 h-4 opacity-70" />
-                  )}
+                  {/* Type indicator icon */}
+                  {(() => {
+                    const Icon = TYPE_ICON[lvl.type] || Type;
+                    return <Icon className="absolute top-2 left-2 w-3.5 h-3.5 opacity-60" />;
+                  })()}
                   {!isUnlocked && <Lock className="w-5 h-5 mb-1" />}
                   {isDone && <Check className="w-5 h-5 absolute top-2 right-2" />}
                   {isFinal && <Crown className="w-6 h-6 mb-1" />}
@@ -173,7 +182,7 @@ export default function LevelSelect() {
                   )}
                   {!isMilestone && (
                     <div className="text-[10px] sm:text-xs mt-1 opacity-70 truncate max-w-full px-1">
-                      {lvl.title}
+                      {lvl.title || lvl.theme}
                     </div>
                   )}
                   {best != null && (

@@ -30,6 +30,8 @@ class PlayerProgress(BaseModel):
     current_level: int = 1
     discovered_phrases: List[dict] = Field(default_factory=list)  # [{level, phrase, translation, ts}]
     best_times: dict = Field(default_factory=dict)  # {level_str: seconds}
+    coins: int = 100  # starting bonus
+    ads_watched: int = 0
     updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
@@ -39,6 +41,11 @@ class ProgressInit(BaseModel):
 
 class NameUpdate(BaseModel):
     name: Optional[str] = None
+
+
+class CoinsUpdate(BaseModel):
+    delta: int  # positive to add, negative to spend
+    reason: Optional[str] = None  # "ad_reward", "hint_word", "level_bonus"
 
 
 class LevelCompletion(BaseModel):
@@ -135,6 +142,28 @@ async def update_name(player_id: str, payload: NameUpdate):
     )
     doc["name"] = name
     return PlayerProgress(**doc)
+
+
+@api_router.post("/progress/{player_id}/coins", response_model=PlayerProgress)
+async def update_coins(player_id: str, payload: CoinsUpdate):
+    doc = await db.player_progress.find_one({"player_id": player_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Player not found")
+    prog = PlayerProgress(**doc)
+    new_coins = max(0, (prog.coins or 0) + int(payload.delta))
+    if int(payload.delta) < 0 and (prog.coins or 0) + int(payload.delta) < 0:
+        raise HTTPException(status_code=400, detail="Insufficient coins")
+    update = {
+        "coins": new_coins,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    if payload.reason == "ad_reward":
+        update["ads_watched"] = (prog.ads_watched or 0) + 1
+    await db.player_progress.update_one({"player_id": player_id}, {"$set": update})
+    prog.coins = new_coins
+    prog.ads_watched = update.get("ads_watched", prog.ads_watched)
+    prog.updated_at = update["updated_at"]
+    return prog
 
 
 @api_router.get("/leaderboard")

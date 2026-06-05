@@ -1,0 +1,39 @@
+{
+  "summary": "Phase 3 testing complete for 'Gipsy Word Connect'. Backend: 6/6 pytest cases pass (init=100 coins, ad_reward increments coins+ads_watched, word_reveal decrements coins, insufficient coins→400, unknown player→404, reset preserves name AND resets coins to 100 default). Frontend: Title='Gipsy Word Connect' (HTML+subtitle GIPSY WORD CONNECT visible), default language=Romanes (page title shows '100 ranga · Romane khelipena'), CoinsDisplay shows 100 on home AND inside game, 100 level tiles render, level-button-1 navigates to /level/1 with word-circle/crossword-board/word-preview (showing '—'), Lightbulb hint opens AdModal → after 5s skip → coins go 100→150 (verified), Hammer hint opens AdModal → skips successfully, Level 3 is anagram (anagram-slots + anagram-tiles), Level 6 is word_search (no word-circle, has hammer/lightbulb/buy-word + coins display). FAIL: Tap-to-tap letter selection on WordCircle does NOT accumulate — clicking circle-letter-N in sequence (D→A→J) leaves word-preview stuck at '—' because the container's onPointerDown handler resets selection to [idx] on each click and pointerup with len<2 clears it, then the `<g>` onClick fires after draggingRef is reset. This blocked Test 5 (level-1 solve) and Test 6 (congrats→ad→level-2 nav).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "WordCircle.jsx", "issue": "Tap-to-tap letter selection broken: clicking individual circle-letter-N elements does not accumulate selection. The parent container's onPointerDown sets selected=[idx] (REPLACES, not appends), and pointerup with selected.length<2 calls finish() which resets selected to []. The subsequent React onClick on the <g> then re-adds only the current letter via handleLetterTap. Net effect: each tap REPLACES the previous one and the word-preview never grows past 1 character. Users on desktop/click-only devices cannot solve word_connect levels via taps; only drag works. Verified empirically: preview text remained '—' after tapping D, A, J sequentially.", "selector": "[data-testid='circle-letter-N']", "priority": "HIGH"}
+    ],
+    "integration_issues": [
+      {"flow": "Level 1 solve → CongratsToast → AdModal → /level/2", "issue": "Cannot test end-to-end because of WordCircle tap bug above. Backend completion endpoint and AdModal skip flow work in isolation (verified on lightbulb +50 coin test which uses identical AdModal mechanics).", "affected_selectors": ["[data-testid='circle-letter-N']", "[data-testid='word-submit']", "[data-testid='congrats-toast']"]}
+    ],
+    "design_issues": [
+      {"screen": "All pages", "issues": ["AudioContext warnings spam the console ('AudioContext was not allowed to start...') — MusicPlayer attempts to start audio before user gesture. Should defer creation/resume until first user interaction to avoid console noise and silent autoplay failure."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_phase3_coins.py",
+    "/app/test_reports/pytest/phase3_results.xml"
+  ],
+  "action_items": [
+    "FIX WordCircle.jsx tap-to-tap: in handlePointerDown, don't immediately call setSelected([idx]) on press. Instead detect drag-vs-tap (e.g., only set selected on first pointermove, or only invoke finish() if draggingRef moved through >1 cell). Alternatively, separate the pointer-capture container from the per-letter click target so onClick on <g> can accumulate without container intercepting.",
+    "Resume/create AudioContext only after first user gesture to eliminate console warnings.",
+    "Consider exposing `data-testid='congrats-continue'` on the CongratsToast continue button (current code has the toast but the continue button selector wasn't found by query; main agent should verify the testid exists)."
+  ],
+  "critical_code_review_comments": [
+    "server.py reset_progress correctly preserves name (verified) — Phase 3 spec note answered: reset DOES rebuild PlayerProgress with default coins=100, ads_watched=0, completed_levels=[], current_level=1; name is preserved.",
+    "server.py update_coins: payload.delta < 0 check uses (prog.coins or 0) + delta < 0 which is correct; but the line before sets new_coins via max(0,...) — that max() is dead code because the check above already 404s on insufficient. Minor but harmless.",
+    "WordCircle.jsx mixing pointer events on parent with onClick on <g> children causes race conditions documented above. Either fully embrace drag (and remove handleLetterTap) or fully embrace tap (use only click handlers, no pointerdown selection mutation).",
+    "AdModal correctly uses 5s countdown and disables skip-button until remaining===0. The data-testid='ad-skip-button' becomes enabled at 0s and clicking it cleanly closes the modal.",
+    "Backend insufficient-coins guard returns 400 BEFORE write — verified via test (coins remain 100 after rejected -500 spend)."
+  ],
+  "updated_files": ["/app/backend/tests/test_phase3_coins.py"],
+  "success_rate": {"backend": "100% (6/6 phase3 + 11/11 phase2 + 10/10 phase1)", "frontend": "80% (8/10 critical flows passing; tap-to-tap blocks 2 dependent tests)"},
+  "test_credentials": "n/a (no auth)",
+  "seed_data_creation": "Backend tests created TEST_InitCoins, TEST_Phase3Coins (multiple), TEST_ResetName in MongoDB. Existing phase1/phase2 seed users still present.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 3 backend fully covered by /app/backend/tests/test_phase3_coins.py (6 tests, all pass). Frontend testIds verified: page-title, coins-display, level-button-{1..100}, word-circle, crossword-board, word-preview, circle-letter-{0..N}, word-submit, hint-hammer, hint-lightbulb, buy-word, ad-modal, ad-skip-button, ad-countdown, congrats-toast, anagram-slots, anagram-tiles. To test post-solve flows you must either (a) fix WordCircle tap-to-tap, or (b) inject completion via fetch('/api/progress/complete') and navigate directly to /level/N+1, or (c) simulate drag with a sequence of pointer move events through the SVG (page.mouse.move/down/move/up). Use localStorage.setItem('romword_onboarded','1') + romword_lang='rmn' before page load to skip onboarding and force Romanes.",
+  "rca of the issue": "WordCircle tap-bug RCA: handlePointerDown sets draggingRef=true and selected=[idx] on any pointer press. Single click (no movement) fires pointerdown→pointerup. In handlePointerUp (called via onPointerUp), draggingRef is true so finish() runs. finish() submits if selected.length>=2 (no — only 1) then setSelected([]) and draggingRef=false. AFTER pointerup, the React synthetic click event fires on the <g> child → handleLetterTap(idx) → since draggingRef now false, it adds idx, so selected=[idx]. Each subsequent click repeats the same: pointerdown overrides selected to [newIdx], pointerup clears, click adds [newIdx]. Result: selection never accumulates past length 1. Fix: in handlePointerDown, do NOT call setSelected([idx]) immediately — instead only mark draggingRef and wait until handlePointerMove detects a second letter to seed the drag. Alternatively, gate the pointerdown selection on `e.pointerType === 'touch'` or detect movement before initiating drag."
+}

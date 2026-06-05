@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { TRANSLATIONS, format, LANGUAGES } from "./translations";
 
 const STORAGE_KEY = "romword_lang";
-const DEFAULT_LANG = "cs";
+const DEFAULT_LANG = "rmn";
 
 const I18nContext = createContext({
   lang: DEFAULT_LANG,

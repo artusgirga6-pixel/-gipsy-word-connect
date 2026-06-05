@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { initPlayer, fetchProgress, completeLevel, resetProgress, updateName } from "@/lib/api";
+import { initPlayer, fetchProgress, completeLevel, resetProgress, updateName, updateCoins } from "@/lib/api";
 
 const STORAGE_KEY = "romword_player_id";
 
@@ -73,5 +73,12 @@ export function useProgress() {
     return updated;
   }, [playerId]);
 
-  return { playerId, progress, loading, error, markComplete, reset, saveName };
+  const addCoins = useCallback(async (delta, reason) => {
+    if (!playerId) return null;
+    const updated = await updateCoins(playerId, delta, reason);
+    setProgress(updated);
+    return updated;
+  }, [playerId]);
+
+  return { playerId, progress, loading, error, markComplete, reset, saveName, addCoins };
 }

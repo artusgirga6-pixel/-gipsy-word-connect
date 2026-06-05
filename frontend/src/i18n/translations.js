@@ -9,8 +9,8 @@ export const LANGUAGES = [
 
 export const TRANSLATIONS = {
   cs: {
-    "app.subtitle": "Romské hledání slov",
-    "app.title": "30 úrovní · 30 vtipných frází",
+    "app.subtitle": "Gipsy Word Connect",
+    "app.title": "100 úrovní · Romské slovní hry",
     "app.intro": "Najdi všechna slova a zbylá písmena ti odhalí skrytou romskou frázi. Poslední úroveň skrývá speciální vítězné kouzlo.",
     "progress.label": "Postup",
     "progress.count": "{done} / {total} dokončeno",
@@ -57,8 +57,8 @@ export const TRANSLATIONS = {
     "footer.text": "Romské hledání slov · Vytvořeno s láskou ♥",
   },
   en: {
-    "app.subtitle": "Romani Word Search",
-    "app.title": "30 levels · 30 funny phrases",
+    "app.subtitle": "Gipsy Word Connect",
+    "app.title": "100 levels · Romani word games",
     "app.intro": "Find all words and the leftover letters reveal a hidden Romani phrase. The final level hides a special winning spell.",
     "progress.label": "Progress",
     "progress.count": "{done} / {total} completed",
@@ -105,8 +105,8 @@ export const TRANSLATIONS = {
     "footer.text": "Romani Word Search · Made with ♥",
   },
   rmn: {
-    "app.subtitle": "Romano rodipen lavengo",
-    "app.title": "30 ranga · 30 vesele lava",
+    "app.subtitle": "Gipsy Word Connect",
+    "app.title": "100 ranga · Romane khelipena",
     "app.intro": "Arakh sa o lava taj o achiljine alefta sikaven tut garado romano lavo. O paluno rango garavel jekh shukar bachtali frasi.",
     "progress.label": "Drom",
     "progress.count": "{done} / {total} kerdo",

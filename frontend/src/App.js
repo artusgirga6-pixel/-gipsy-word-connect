@@ -2,18 +2,20 @@ import React from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LevelSelect from "@/pages/LevelSelect";
-import Game from "@/pages/Game";
+import GameRouter from "@/pages/GameRouter";
 import { Toaster } from "@/components/ui/sonner";
 import { I18nProvider } from "@/i18n/I18nContext";
+import MusicPlayer from "@/components/MusicPlayer";
 
 function App() {
   return (
     <div className="App">
       <I18nProvider>
         <BrowserRouter>
+          <MusicPlayer />
           <Routes>
             <Route path="/" element={<LevelSelect />} />
-            <Route path="/level/:levelId" element={<Game />} />
+            <Route path="/level/:levelId" element={<GameRouter />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
