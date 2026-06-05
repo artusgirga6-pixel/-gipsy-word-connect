@@ -1,0 +1,27 @@
+{
+  "summary": "Phase 3 RETEST iteration 4 (frontend only). All 6 critical flows from review_request PASSED. WordCircle tap-to-tap fix verified: (1) /level/1 DAJ — preview progressed D→DA→DAJ, submit accepted, crossword-cell-DAJ-{0,1,2} filled with D,A,J, congrats-toast 'Lačhi goďi!' shown, AdModal opened, 5s skip → navigated to /level/2. (2) /level/2 DAD — same flow, DAD assembled correctly (D from idx 1, A from idx 0, D from idx 2), congrats+ad+nav to /level/3 OK. (3) /level/3 anagram PHRAL — slots filled by tapping tiles in correct order, congrats-toast, ad-modal, nav to /level/4. (4) /level/6 word_search — word-search-grid present, word-circle absent (correct level type). (5) AudioContext warning — ZERO autoplay warnings detected on page load before user interaction; MusicPlayer's unlocked-gate fix verified. (6) Lightbulb hint on /level/1 — coins 100 → click hint → ad-modal → 5s skip → coins = 150 exactly. No console errors observed. Backend was not retested (instruction said skip; previous iteration confirmed 100% backend pass).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_4.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "WordCircle.jsx now correctly distinguishes tap vs drag — handlePointerDown only records start coords and resets draggingRef=false; selection seeding is deferred to handlePointerMove once movement exceeds 6px. Tap-to-tap via <g> onClick now accumulates as designed. Fix is minimal and correct.",
+    "MusicPlayer.jsx unlocked gate: AudioContext is no longer constructed until first pointerdown/keydown. Verified empirically — no AudioContext autoplay warnings in console after fresh page load with zero interaction. Listeners are correctly registered with {once:true} and cleaned up on unmount.",
+    "Minor (non-blocking): in WordCircle handlePointerMove, when draggingRef just became true, code seeds selection only if prev.length===0. This is fine. e.preventDefault() inside passive React onPointerMove is a no-op in some browsers but harmless.",
+    "CongratsToast text correctly localised to Romanes ('Lačhi goďi!') with Slovak subtitle. AdModal countdown works (skip enabled at 0s)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (not retested this iteration; previous 100%)", "frontend": "100% (6/6 critical flows)"},
+  "test_credentials": "n/a",
+  "seed_data_creation": "Reused existing default player created via localStorage clear → fresh 100 coins on lightbulb test. Levels 1 and 2 marked completed in MongoDB during test run (cleanup not required — gameplay seed).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "WordCircle tap-to-tap and MusicPlayer audio-defer are both confirmed fixed. Full word_connect end-to-end (tap-only) works on Levels 1 and 2. Anagram solver works on Level 3. Word_search Level 6 layout intact. Lightbulb +50 reward verified at 100→150. If future regressions: re-run /app/test_reports/iteration_4 Playwright (embedded in this report's tooling log) — letter index ordering can be derived dynamically via querying [data-testid=circle-letter-N]/text. Note: AdModal skip button becomes enabled exactly at 5s; wait ≥5500ms.",
+  "rca of the issue": "Previous iter3 bug RCA (now resolved): handlePointerDown setSelected([idx]) immediately on press collided with the later React onClick→handleLetterTap. Fix: defer selection seeding to handlePointerMove and only when movement > 6px. Single-tap with zero movement now leaves draggingRef=false so handlePointerUp does NOT call finish(), and the subsequent click on <g> appends via handleLetterTap. Verified empirically by sequential clicks producing D→DA→DAJ preview."
+}

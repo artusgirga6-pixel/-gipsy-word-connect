@@ -15,6 +15,7 @@ export default function WordCircle({ letters, onSubmit, disabled }) {
   const [selected, setSelected] = useState([]); // indices into letters
   const [pointerPos, setPointerPos] = useState(null);
   const draggingRef = useRef(false);
+  const pointerStartRef = useRef(null);
 
   const size = 320;
   const cx = size / 2;
@@ -61,23 +62,29 @@ export default function WordCircle({ letters, onSubmit, disabled }) {
 
   const handlePointerDown = (e) => {
     if (disabled) return;
-    e.preventDefault();
-    const idx = getIdxAt(e.clientX, e.clientY);
-    if (idx === -1) return;
-    draggingRef.current = true;
-    setSelected([idx]);
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (rect) {
-      setPointerPos({
-        x: ((e.clientX - rect.left) / rect.width) * size,
-        y: ((e.clientY - rect.top) / rect.height) * size,
-      });
-    }
-    try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+    // Don't seize selection on press — wait for actual movement.
+    // This lets <g> children's onClick handle tap-to-tap correctly.
+    pointerStartRef.current = { x: e.clientX, y: e.clientY };
+    draggingRef.current = false;
+    setPointerPos(null);
   };
 
   const handlePointerMove = (e) => {
-    if (!draggingRef.current) return;
+    const start = pointerStartRef.current;
+    if (!start) return;
+    if (!draggingRef.current) {
+      const dx = e.clientX - start.x;
+      const dy = e.clientY - start.y;
+      if (Math.sqrt(dx * dx + dy * dy) < 6) return; // not yet a drag
+      // Begin drag: seed selection with the cell under the pointer
+      draggingRef.current = true;
+      const initIdx = getIdxAt(start.x, start.y);
+      if (initIdx >= 0) {
+        setSelected((prev) => (prev.length === 0 ? [initIdx] : prev));
+      }
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+    }
+    e.preventDefault();
     const rect = containerRef.current?.getBoundingClientRect();
     if (rect) {
       setPointerPos({
@@ -89,18 +96,19 @@ export default function WordCircle({ letters, onSubmit, disabled }) {
     if (idx === -1) return;
     setSelected((prev) => {
       if (prev[prev.length - 1] === idx) return prev;
-      // Going back to previous letter pops the last selection
-      if (prev.length >= 2 && prev[prev.length - 2] === idx) {
-        return prev.slice(0, -1);
-      }
-      if (prev.includes(idx)) return prev; // already used
+      if (prev.length >= 2 && prev[prev.length - 2] === idx) return prev.slice(0, -1);
+      if (prev.includes(idx)) return prev;
       return [...prev, idx];
     });
   };
 
   const handlePointerUp = () => {
-    if (!draggingRef.current) return;
-    finish();
+    pointerStartRef.current = null;
+    if (draggingRef.current) {
+      // it was a drag: submit
+      finish();
+    }
+    // else: was a tap — letter onClick handles it
   };
 
   // Tap-to-tap: clicking individual letters

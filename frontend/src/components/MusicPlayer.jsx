@@ -93,6 +93,22 @@ export default function MusicPlayer() {
     try { return localStorage.getItem(STORAGE_KEY) === "1"; } catch { return false; }
   });
   const [currentMelody, setCurrentMelody] = useState(-1);
+  const [unlocked, setUnlocked] = useState(false);
+
+  // Unlock audio on first user gesture (browser policy)
+  useEffect(() => {
+    const unlock = () => {
+      setUnlocked(true);
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+    window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("keydown", unlock, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, []);
 
   // Determine which melody index from current URL
   const melodyIdx = (() => {
@@ -104,6 +120,7 @@ export default function MusicPlayer() {
 
   // Start/stop based on mute and melodyIdx
   useEffect(() => {
+    if (!unlocked) return; // wait for user gesture
     if (muted) {
       if (stopRef.current) { stopRef.current(); stopRef.current = null; }
       setCurrentMelody(-1);
@@ -126,7 +143,7 @@ export default function MusicPlayer() {
     if (stopRef.current) stopRef.current();
     stopRef.current = startMelody(ctxRef.current, melodyIdx, gainRef.current);
     setCurrentMelody(melodyIdx);
-  }, [muted, melodyIdx, currentMelody]);
+  }, [muted, melodyIdx, currentMelody, unlocked]);
 
   // Cleanup on unmount
   useEffect(() => () => { if (stopRef.current) stopRef.current(); }, []);
