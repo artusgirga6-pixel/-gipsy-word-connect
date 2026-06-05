@@ -1,0 +1,29 @@
+import axios from "axios";
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+export const API = `${BACKEND_URL}/api`;
+
+export const api = axios.create({
+  baseURL: API,
+  headers: { "Content-Type": "application/json" },
+});
+
+export async function initPlayer(name) {
+  const { data } = await api.post("/progress/init", { name });
+  return data;
+}
+
+export async function fetchProgress(playerId) {
+  const { data } = await api.get(`/progress/${playerId}`);
+  return data;
+}
+
+export async function completeLevel(payload) {
+  const { data } = await api.post("/progress/complete", payload);
+  return data;
+}
+
+export async function resetProgress(playerId) {
+  const { data } = await api.post(`/progress/reset/${playerId}`);
+  return data;
+}

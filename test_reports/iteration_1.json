@@ -1,0 +1,37 @@
+{
+  "summary": "End-to-end MVP testing of Romani Word Search game. Backend (FastAPI + MongoDB): all 10 pytest cases pass covering /api root, /progress/init, /progress/{id} (200 + 404), /progress/complete (level 1, increments, idempotency, level-30 caps current_level at 30), /progress/reset, and /leaderboard. Frontend (Playwright): level select shows 30 tiles with milestones (10, 20, 30) larger, 0/30 progress bar, navigation to /level/1 shows 8x8 grid (64 tiles), word list with all 10 placed words, hint/reshuffle/back buttons; pointer-drag word selection works for all 10 words, RevealOverlay with data-testid='reveal-phrase' shows 'Miro grast chal kotor maro' + Czech translation, confetti fires; reveal-continue navigates to /level/2; back-button returns home where Level 1 is marked green/done and Level 2 is unlocked; discovered phrases section displays the phrase; progress count updates to 1/30; reset button clears progress back to 0/30 after confirm. No JS page errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "WordSearchGrid", "issue": "Tap-tap (click first tile, then click last tile) accessibility selection mode is NON-FUNCTIONAL. onPointerDown always sets start={r,c} and onPointerUp clears it on every tap, so handleCellClick's `!start` branch never fires correctly and a single-cell line is never converted into a valid range. To fix: differentiate click-only from drag (e.g., only setStart in pointerdown if user moves; or move tap-tap logic to onPointerUp with movement threshold). Pointer drag selection works correctly, so this is a fallback-mode bug only.", "selector": "[data-testid='word-search-grid'] / [data-testid^='grid-tile-']", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Level select", "issues": ["Layout is clean and folk-themed; milestones (10/20) and final (30) tile properly enlarged with col-span/row-span. Looks good."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_progress_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Fix WordSearchGrid tap-tap accessibility mode (single tap then second tap is currently swallowed by pointer events). Suggested: track pointer movement and only treat as drag when delta > threshold, else fall through to onClick tap-tap.",
+    "Optional: also add a data-testid on the reveal-translation block (already present) and on the WordList container for easier test selection (already 'word-list-item-WORD' exists -- good)."
+  ],
+  "critical_code_review_comments": [
+    "server.py: clean, async, uses uuid for player_id, excludes _id properly via projection. Good.",
+    "Game.jsx handleSelect has redundant duplicate checks (lines 70-77 repeat 61-68); harmless but could be cleaned up.",
+    "WordSearchGrid: pointerdown+click conflict makes the documented tap-tap fallback unusable; should be reworked.",
+    "level cap logic: prog.current_level = max(prog.current_level, min(payload.level + 1, 30)) correctly caps at 30 — verified by test."
+  ],
+  "updated_files": [
+    "/app/backend/tests/__init__.py",
+    "/app/backend/tests/test_progress_api.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100% (pointer drag); tap-tap fallback broken but not in primary acceptance criteria"},
+  "test_credentials": "n/a (no auth)",
+  "seed_data_creation": "Created one TEST_Tester player via /api/progress/init during backend tests; persisted in MongoDB collection player_progress.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Words on the grid use data-testid='word-list-item-{WORD}' (not 'word-item-...'). The reliable way to select a word programmatically is: read every grid-tile-{r}-{c} via page.evaluate, scan 8 directions to find each word, then perform page.mouse.down() at the start tile's center, move in 10-15 small steps to the end tile center, then page.mouse.up(). Tap-tap clicking is currently broken; do NOT rely on click()+click() for word selection. RevealOverlay appears ~600ms after final word is found; wait up to 8s. Backend URL from /app/frontend/.env REACT_APP_BACKEND_URL. localStorage key for player is 'romword_player_id'."
+}
