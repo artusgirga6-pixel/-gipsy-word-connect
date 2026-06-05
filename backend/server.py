@@ -29,10 +29,15 @@ class PlayerProgress(BaseModel):
     completed_levels: List[int] = Field(default_factory=list)
     current_level: int = 1
     discovered_phrases: List[dict] = Field(default_factory=list)  # [{level, phrase, translation, ts}]
+    best_times: dict = Field(default_factory=dict)  # {level_str: seconds}
     updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class ProgressInit(BaseModel):
+    name: Optional[str] = None
+
+
+class NameUpdate(BaseModel):
     name: Optional[str] = None
 
 
@@ -89,6 +94,12 @@ async def complete_level(payload: LevelCompletion):
         "time_seconds": payload.time_seconds,
         "ts": datetime.now(timezone.utc).isoformat(),
     })
+    # Track best (lowest) time per level
+    if payload.time_seconds is not None and payload.time_seconds > 0:
+        key = str(payload.level)
+        current_best = prog.best_times.get(key)
+        if current_best is None or payload.time_seconds < current_best:
+            prog.best_times[key] = payload.time_seconds
     prog.updated_at = datetime.now(timezone.utc).isoformat()
 
     await db.player_progress.update_one(
@@ -101,7 +112,9 @@ async def complete_level(payload: LevelCompletion):
 
 @api_router.post("/progress/reset/{player_id}", response_model=PlayerProgress)
 async def reset_progress(player_id: str):
-    prog = PlayerProgress(player_id=player_id)
+    existing = await db.player_progress.find_one({"player_id": player_id}, {"_id": 0})
+    name = existing.get("name") if existing else None
+    prog = PlayerProgress(player_id=player_id, name=name)
     await db.player_progress.update_one(
         {"player_id": player_id},
         {"$set": prog.model_dump()},
@@ -110,18 +123,37 @@ async def reset_progress(player_id: str):
     return prog
 
 
+@api_router.post("/progress/{player_id}/name", response_model=PlayerProgress)
+async def update_name(player_id: str, payload: NameUpdate):
+    doc = await db.player_progress.find_one({"player_id": player_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Player not found")
+    name = (payload.name or "").strip() or None
+    await db.player_progress.update_one(
+        {"player_id": player_id},
+        {"$set": {"name": name, "updated_at": datetime.now(timezone.utc).isoformat()}},
+    )
+    doc["name"] = name
+    return PlayerProgress(**doc)
+
+
 @api_router.get("/leaderboard")
-async def leaderboard(limit: int = 10):
-    cursor = db.player_progress.find({}, {"_id": 0}).sort("updated_at", -1).limit(limit)
-    rows = await cursor.to_list(length=limit)
-    return [
-        {
-            "name": r.get("name") or "Anonymous",
+async def leaderboard(limit: int = 20):
+    cursor = db.player_progress.find({}, {"_id": 0})
+    rows = await cursor.to_list(length=500)
+    enriched = []
+    for r in rows:
+        bt = r.get("best_times", {}) or {}
+        total_time = sum(bt.values()) if bt else 0
+        enriched.append({
+            "name": r.get("name") or "Hráč",
             "completed": len(r.get("completed_levels", [])),
             "current_level": r.get("current_level", 1),
-        }
-        for r in rows
-    ]
+            "total_best_time": total_time,
+            "updated_at": r.get("updated_at"),
+        })
+    enriched.sort(key=lambda x: (-x["completed"], x["total_best_time"] or 9_999_999))
+    return enriched[:limit]
 
 
 app.include_router(api_router)

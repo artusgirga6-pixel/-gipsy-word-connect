@@ -27,3 +27,13 @@ export async function resetProgress(playerId) {
   const { data } = await api.post(`/progress/reset/${playerId}`);
   return data;
 }
+
+export async function updateName(playerId, name) {
+  const { data } = await api.post(`/progress/${playerId}/name`, { name });
+  return data;
+}
+
+export async function fetchLeaderboard(limit = 20) {
+  const { data } = await api.get(`/leaderboard`, { params: { limit } });
+  return data;
+}

@@ -7,16 +7,19 @@ import WordList from "@/components/WordList";
 import RevealOverlay from "@/components/RevealOverlay";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Lightbulb, RotateCcw } from "lucide-react";
+import { ArrowLeft, Lightbulb, RotateCcw, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { useProgress } from "@/hooks/useProgress";
+import { useI18n } from "@/i18n/I18nContext";
+import { playSound } from "@/lib/audio";
 
 export default function Game() {
   const { levelId } = useParams();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const idNum = parseInt(levelId, 10);
   const level = LEVELS.find((l) => l.id === idNum);
-  const { markComplete } = useProgress();
+  const { progress, markComplete } = useProgress();
 
   const [seed, setSeed] = useState(0);
   const board = useMemo(() => (level ? generateGrid(level, seed) : null), [level, seed]);
@@ -25,23 +28,34 @@ export default function Game() {
   const [hintCells, setHintCells] = useState([]);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [revealOpen, setRevealOpen] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [startTime, setStartTime] = useState(Date.now());
+  const [elapsed, setElapsed] = useState(0);
+  const [lastTime, setLastTime] = useState(null);
 
-  // Reset state when level changes
   useEffect(() => {
     setFoundWords(new Set());
     setFoundCells([]);
     setHintCells([]);
     setHintsUsed(0);
     setRevealOpen(false);
+    setStartTime(Date.now());
+    setElapsed(0);
+    setLastTime(null);
   }, [idNum, seed]);
+
+  // tick timer
+  useEffect(() => {
+    if (revealOpen) return;
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - startTime) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [startTime, revealOpen]);
 
   if (!level || !board) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FFFBF0]">
         <div className="text-center">
-          <p className="text-[#5C4B4B] mb-4">Úroveň nenalezena.</p>
-          <Button onClick={() => navigate("/")}>Zpět</Button>
+          <p className="text-[#5C4B4B] mb-4">{t("game.notFound")}</p>
+          <Button onClick={() => navigate("/")}>{t("game.back")}</Button>
         </div>
       </div>
     );
@@ -50,6 +64,7 @@ export default function Game() {
   const total = level.words.length;
   const remaining = total - foundWords.size;
   const completionPct = Math.round((foundWords.size / total) * 100);
+  const bestTime = progress?.best_times?.[String(level.id)] ?? null;
 
   const handleSelect = (cells) => {
     if (foundWords.size === total) return;
@@ -66,15 +81,6 @@ export default function Game() {
         matched = p;
         break;
       }
-      // direction-agnostic check using stored cells
-      if (p.word === letters && cellsEqual(p.cells, cells)) {
-        matched = p;
-        break;
-      }
-      if (p.word === reverseLetters && cellsEqual(reverseCells(p.cells), cells)) {
-        matched = p;
-        break;
-      }
     }
     if (matched) {
       const next = new Set(foundWords);
@@ -82,18 +88,23 @@ export default function Game() {
       setFoundWords(next);
       setFoundCells((prev) => [...prev, ...matched.cells]);
       setHintCells([]);
-      toast.success(`Skvěle! Našel jsi "${matched.word}"`, { duration: 1500 });
+      playSound("find");
+      toast.success(t("game.found", { word: matched.word }), { duration: 1500 });
       if (next.size === total) {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        // mark complete in background
+        const completedIn = Math.floor((Date.now() - startTime) / 1000);
+        setLastTime(completedIn);
+        playSound(level.isMilestone ? "milestone" : "complete");
         markComplete({
           level: level.id,
           phrase: level.phrase,
           translation: level.translation,
           theme: level.title,
-          timeSeconds: elapsed,
+          timeSeconds: completedIn,
         }).catch(() => {});
-        setTimeout(() => setRevealOpen(true), 600);
+        setTimeout(() => {
+          playSound("reveal");
+          setRevealOpen(true);
+        }, 600);
       }
     }
   };
@@ -102,23 +113,21 @@ export default function Game() {
     const remainingWords = board.placements.filter((p) => !foundWords.has(p.word));
     if (remainingWords.length === 0) return;
     const pick = remainingWords[Math.floor(Math.random() * remainingWords.length)];
-    // show first 2 cells
     setHintCells(pick.cells.slice(0, 2));
     setHintsUsed((n) => n + 1);
-    toast(`Nápověda: slovo "${pick.word}" začíná zde`, { duration: 2200 });
+    playSound("click");
+    toast(t("game.hint", { word: pick.word }), { duration: 2200 });
   };
 
   const handleReshuffle = () => {
     setSeed((s) => s + 1);
-    toast("Nová mřížka vygenerována", { duration: 1200 });
+    playSound("click");
+    toast(t("game.reshuffled"), { duration: 1200 });
   };
 
   const continueNext = () => {
-    if (level.id < LEVELS.length) {
-      navigate(`/level/${level.id + 1}`);
-    } else {
-      navigate("/");
-    }
+    if (level.id < LEVELS.length) navigate(`/level/${level.id + 1}`);
+    else navigate("/");
   };
 
   return (
@@ -134,7 +143,6 @@ export default function Game() {
         }}
       />
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* Header */}
         <header className="flex items-center justify-between gap-2 mb-4">
           <Button
             data-testid="back-button"
@@ -142,14 +150,14 @@ export default function Game() {
             onClick={() => navigate("/")}
             className="border-2 border-[#E8DFCA] rounded-xl bg-white/70 hover:bg-white"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> Úrovně
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("btn.levels")}
           </Button>
-          <div className="text-center flex-1">
+          <div className="text-center flex-1 min-w-0">
             <div className="text-[#D92525] uppercase tracking-[0.18em] text-[10px] sm:text-xs font-bold">
-              Úroveň {level.id} / {LEVELS.length} · {level.gridSize}×{level.gridSize}
+              {t("game.level", { id: level.id, total: LEVELS.length })} · {level.gridSize}×{level.gridSize}
             </div>
             <h1
-              className="text-xl sm:text-3xl font-bold text-[#2D2323]"
+              className="text-xl sm:text-3xl font-bold text-[#2D2323] truncate"
               style={{ fontFamily: "Fredoka, sans-serif" }}
               data-testid="level-title"
             >
@@ -163,7 +171,7 @@ export default function Game() {
               onClick={handleHint}
               className="border-2 border-[#F5A623] text-[#A36A00] rounded-xl bg-white/70 hover:bg-[#FFFBF0]"
             >
-              <Lightbulb className="w-4 h-4 mr-1" /> Nápověda
+              <Lightbulb className="w-4 h-4 mr-1" /> {t("btn.hint")}
               {hintsUsed > 0 && <span className="ml-1 text-xs opacity-70">({hintsUsed})</span>}
             </Button>
             <Button
@@ -177,20 +185,28 @@ export default function Game() {
           </div>
         </header>
 
-        {/* Progress */}
         <div className="mb-4 p-3 rounded-2xl bg-white/80 border-2 border-[#E8DFCA] backdrop-blur">
           <div className="flex items-center justify-between mb-1.5 text-sm">
             <span className="font-semibold text-[#1E3A8A]">
-              {foundWords.size} / {total} slov nalezeno
+              {t("game.foundCount", { done: foundWords.size, total })}
             </span>
-            <span className="text-[#5C4B4B]" data-testid="remaining-count">
-              Zbývá: {remaining}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-[#5C4B4B]" data-testid="remaining-count">
+                {t("game.remaining", { n: remaining })}
+              </span>
+              <span className="inline-flex items-center gap-1 text-[#2D2323] font-mono font-semibold tabular-nums" data-testid="timer">
+                <Timer className="w-3.5 h-3.5 text-[#D92525]" /> {elapsed}s
+              </span>
+              {bestTime != null && (
+                <span className="text-[#2B8C44] text-xs font-semibold" data-testid="best-time">
+                  ★ {bestTime}s
+                </span>
+              )}
+            </div>
           </div>
           <Progress value={completionPct} className="h-2.5 bg-[#E8DFCA]" />
         </div>
 
-        {/* Grid */}
         <div className="mb-6">
           <WordSearchGrid
             grid={board.grid}
@@ -201,7 +217,6 @@ export default function Game() {
           />
         </div>
 
-        {/* Word list */}
         <WordList words={level.words} foundWords={foundWords} />
       </div>
 
@@ -211,9 +226,13 @@ export default function Game() {
         translation={level.translation}
         theme={level.title}
         isFinal={level.isFinal}
+        isMilestone={level.isMilestone}
+        levelId={level.id}
+        timeSeconds={lastTime}
+        bestSeconds={bestTime}
         onContinue={continueNext}
         onHome={() => navigate("/")}
-        nextLabel={level.id === LEVELS.length ? "Hotovo" : "Další úroveň"}
+        nextLabel={level.id === LEVELS.length ? t("btn.done") : t("btn.next")}
       />
     </div>
   );

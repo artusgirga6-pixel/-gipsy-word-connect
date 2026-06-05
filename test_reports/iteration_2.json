@@ -1,0 +1,36 @@
+{
+  "summary": "Phase 2 testing complete for Romani Word Search. Backend: 11/11 pytest cases pass in /app/backend/tests/test_phase2_api.py covering POST /api/progress/{id}/name (success, empty→null, 404 missing), best_times tracking (initial set, keeps lowest of multiple submissions, zero/None ignored), GET /api/leaderboard (returns total_best_time field, respects limit, sorts by completed DESC then total_best_time ASC), and POST /api/progress/reset preserves name while clearing completed_levels/best_times/discovered_phrases (and current_level→1). Frontend (Playwright): OnboardingModal appears on first visit when localStorage 'romword_onboarded' is unset; entering name 'TestPlayerUI' persists it (visible as small text on header) and sets storage flag to '1'; LanguageSwitcher dropdown has cs/en/rmn options, switching to EN changes page title to '30 levels · 30 funny phrases' and persists across reload (localStorage 'romword_lang'='en'); Romanes selection switches title to '30 ranga · 30 vesele lava'; mute toggle updates localStorage 'romword_muted'; LeaderboardSheet opens with 20 rows + Trophy header; level-best-1 badge shows '★ 33s' after server-side completion injection; game header shows data-testid='best-time' with '★ 33s' on level revisit. Code review confirms RevealOverlay applies 'border-4 border-[#F5A623]' on festive (isMilestone || isFinal), data-testid='reveal-share-button' and 'reveal-time' exist, and Game.jsx calls playSound('milestone') when level.isMilestone is true.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Leaderboard", "issues": ["When player has 0 completions, they get pushed beyond top-20 by 'Hráč' (anonymous) rows with same 0 completed; the '(ty)/(you)' marker therefore only highlights if the player has completed at least 1 level OR there are < 20 players above them. Not a bug, but consider ensuring the current player's row is always included even if not in top-N."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_progress_api.py",
+    "/app/backend/tests/test_phase2_api.py",
+    "/app/test_reports/pytest/phase2_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py NameUpdate: empty/whitespace name is normalized to None — verified by test_update_name_empty_clears. Good.",
+    "server.py best_times: only updates when payload.time_seconds is not None AND > 0 — correctly prevents zero/None from clobbering an existing best. Verified.",
+    "server.py reset_progress: reads existing.name and seeds new PlayerProgress with it — name preserved while everything else (completed_levels, best_times, discovered_phrases, current_level) is wiped. Good.",
+    "server.py leaderboard: sort key (-completed, total_best_time or 9_999_999) correctly puts higher completion first; players with 0 best times sort last among same completion count. Acceptable.",
+    "useProgress.saveName: posts to /progress/{id}/name then updates local state. If first-visit player_id was just created without name, this works because progress already exists.",
+    "LeaderboardSheet matches by r.name === currentPlayerName — collision risk if two players share the same name (e.g., two 'Hráč'). Consider matching by player_id, but leaderboard endpoint doesn't return player_id (privacy reason). Minor.",
+    "audio.js: muted state is module-level and the mute-toggle is the only consumer; isMuted() returns the cached value. After toggleMuted() in LanguageSwitcher, local React state setMutedState(...) is updated for icon rerender. Working as intended."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_phase2_api.py"
+  ],
+  "success_rate": {"backend": "100% (11/11 phase2 + 10/10 phase1)", "frontend": "100% on all phase 2 features tested"},
+  "test_credentials": "n/a (no auth)",
+  "seed_data_creation": "Backend tests created TEST_Phase2, TEST_UpdatedName, TEST_KeepMe, TEST_SortA, TEST_SortB, TEST_TieFast, TEST_TieSlow, and TestPlayerUI in MongoDB player_progress collection. These persist after the run and are visible on the leaderboard.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All Phase 2 backend endpoints (/progress/{id}/name, /leaderboard with limit + total_best_time, reset preserving name, best_times lowest-wins) verified via pytest at /app/backend/tests/test_phase2_api.py. Frontend testIds in use: onboarding-modal, onboarding-name-input, onboarding-save-button, onboarding-skip-button, language-switcher, language-option-{cs,en,rmn}, mute-toggle, leaderboard-button, leaderboard-sheet, leaderboard-row-{idx}, level-best-{id}, best-time, reveal-share-button, reveal-time, reveal-overlay. To bypass the onboarding modal in tests, set localStorage 'romword_onboarded'='1' before navigation. localStorage keys used: romword_player_id, romword_onboarded, romword_lang, romword_muted. Backend completion can be injected directly via fetch('/api/progress/complete') from the browser to seed best_times for UI tests.",
+  "rca of the issue": "n/a — no functional issues found in Phase 2 implementation."
+}
