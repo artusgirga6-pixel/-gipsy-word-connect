@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Gipsy Word Connect</string>
+    <string name="title_activity_main">Gipsy Word Connect</string>
+    <string name="package_name">com.gipsywordconnect.app</string>
+    <string name="custom_url_scheme">com.gipsywordconnect.app</string>
+    <string name="admob_app_id">ca-app-pub-8757468659976693~4637205420</string>
+</resources>
