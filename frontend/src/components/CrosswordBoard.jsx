@@ -38,13 +38,13 @@ export default function CrosswordBoard({ board, found, revealedLetters, shape = 
 
   // Adaptive cell size: bigger for smaller grids
   const dim = Math.max(rows, cols);
-  const cellSizeCls = dim <= 7 ? "w-9 h-9 sm:w-11 sm:h-11" : "w-7 h-7 sm:w-9 sm:h-9";
-  const textCls = dim <= 7 ? "text-lg sm:text-2xl" : "text-sm sm:text-lg";
+  const cellSizeCls = dim <= 7 ? "w-7 h-7 sm:w-9 sm:h-9" : "w-6 h-6 sm:w-7 sm:h-7";
+  const textCls = dim <= 7 ? "text-base sm:text-xl" : "text-sm sm:text-base";
 
   return (
     <div
       className={[
-        "relative w-full max-w-md mx-auto rounded-3xl border-4 p-3 sm:p-5 bg-gradient-to-br shadow-[0_8px_0_0_rgba(0,0,0,0.08)]",
+        "relative w-full max-w-sm mx-auto rounded-3xl border-4 p-2.5 sm:p-4 bg-gradient-to-br shadow-[0_8px_0_0_rgba(0,0,0,0.08)]",
         t.bg, t.border,
       ].join(" ")}
       data-testid="crossword-board"

@@ -169,7 +169,7 @@ export default function WordConnectGame() {
     setCongrats(false);
     // Interstitial ad after every level
     playAd("interstitial", () => {
-      if (level.id < 100) navigate(`/level/${level.id + 1}`);
+      if (level.id < 50) navigate(`/level/${level.id + 1}`);
       else navigate("/");
     });
   };
@@ -189,7 +189,7 @@ export default function WordConnectGame() {
           </Button>
           <div className="text-center flex-1">
             <div className="text-[#D92525] uppercase tracking-[0.2em] text-[10px] sm:text-xs font-black">
-              Rango {level.id} / 100
+              Rango {level.id} / 50
             </div>
             <h1
               className="text-xl sm:text-2xl font-black text-[#2D2323]"

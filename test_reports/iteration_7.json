@@ -1,0 +1,28 @@
+{
+  "summary": "Iteration 7 frontend-only retest after Phase 6 simplification (50 levels, strict 5/5 alternation, no anagrams, WordCircle 200px, L1 ≥16 cells & exactly 4 words). All 7 review items PASSED.\n\n(1) LevelSelect now renders exactly 50 tiles [data-testid='level-button-1'..'level-button-50']; no level-button-51/75/91/100 exist — anagram block fully removed. (2) /level/1 'Drom' rect, pool DROMARO: crossword has 17 active cells (≥16) and EXACTLY 4 unique data-cell-word values: ROMORA, ROMRA, DROM, DOMA — sum lengths 6+5+4+4=19 cells, intersections collapse to 17 unique placed cells. Progress label reads '0/4'. Header = 'RANGO 1 / 50' / theme 'Drom'. (3) /level/6 header = 'RANGO 6 / 50' word_search renders. (4) /level/50 grand-final header = 'RANGO 50 / 50 · 15×15 · BONUS' theme 'Velké finále' (phrase data 'Vyhral si vyraindal meliari topánka' loaded in level def; full reveal-overlay requires completing 31 words, not solved in automation but data and BONUS flag confirmed). (5) WordCircle on mobile (414×800) renders at exactly 200px container width AND 200px aspect-square SVG width (≤220 satisfied on mobile). Circle letters D,R,O,M,A,R,O present. Tapped indices 1,3,2,5 (D-R-O-M) → preview 'DROM' → word-submit → progress went '0/4' → '1/4', 17 crossword cells filled, DROM letters now visible in board. (6) /level/11 (block 2 AMARODK heart) renders 5 unique data-cell-word values: KAMA, DROM, DARA, AMARO, DOMA (target=5, ≥5 ✓). (7) Mobile 414×800 on /level/1: docH=800 == winH=800, ZERO overflow. Zero console errors during the entire run; no AnagramGame import warnings. /level/91 (invalid id > 50) correctly redirects to '/' via GameRouter's Navigate fallback.\n\nMinor design observation: at ≥sm breakpoint the WordCircle is sm:max-w-[240px] → 240px on desktop (>220px), so the '≤220px' DOM rule only holds on <640px viewports. This is an intentional responsive scaling, not a bug, but worth noting if the spec intends 220 as a hard cap on all viewports.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/level/1 WordCircle", "issues": ["On desktop (>=sm 640px) the wheel scales to 240px wide via sm:max-w-[240px]; spec said '≤220 in DOM'. Mobile is fine at 200px. Confirm whether 240px on desktop is intended."]}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_7.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "levels.js — buildLevels() cleanly produces 50 entries via strict 5/5 alternation (blockTypeFor). buildWordSearchQueue() pulls first 24 originals + index 29 'Velké finále' to anchor L50. Deterministic and readable.",
+    "wordConnectLevels.js — pickWords() longest-first strategy with minTotalCells guarantee correctly hits the 4-word/≥16-cell target for L1 (ROMORA+ROMRA+DROM+DOMA = 19 cells → 17 after intersections). Block growth 4→5→6→7→8 verified at L1 (4 words) and L11 (5 words).",
+    "WordCircle.jsx — size=200 with max-w-[200px] sm:max-w-[240px]. Letter radius adaptive (N≤4→22, ≤6→18, ≤8→16, else 14). For L1 with 7 letters (DROMARO=7 chars) r=16 which is still tappable on mobile. The tap-vs-drag heuristic (>6px movement = drag) works well — tap-only flow used in automation succeeded.",
+    "GameRouter.jsx — clean: no AnagramGame import, simple Navigate fallback for invalid level ids. Verified by visiting /level/91 → redirects to /.",
+    "Minor (non-blocking): WordConnectGame progress display uses a plain <span> with no data-testid (test had to fall back to regex on body text). Adding data-testid='progress-label' would restore testability parity with iteration 6 baseline."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not retested per instruction", "frontend": "100% (7/7 review items)"},
+  "test_credentials": "n/a",
+  "seed_data_creation": "Set localStorage.romword_onboarded=1 and localStorage.romword_progress_v1={coins:200,completed:[],lastVisitedLevel:1} before navigation to bypass onboarding.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Critical L1 facts: pool='DROMARO' (7 letters D,R,O,M,A,R,O). pickWords longest-first picks EXACTLY: ROMORA(6), ROMRA(5), DROM(4), DOMA(4) = 4 words / 19 cells (collapses to 17 after crossword intersections). Circle letters render in order A,D,O,R,O,M,R (shuffle by level.id seed). DROM solvable via index sequence [1,3,2,5]. To read progress text use: spans matching /^\\d+\\/\\d+$/ (no data-testid; this is a known testability nit). LevelSelect tiles use data-testid='level-button-{id}' (NOT 'level-tile-'). For L50 grand-final reveal full verification, automation would need to solve 31 words on the 15×15 grid; not feasible in a normal test run — verifying the phrase loads in the level def + BONUS flag is sufficient. /level/91 redirects to / via Navigate (good). No console errors at all during the run. WordCircle: 200px on mobile, 240px on desktop (sm:max-w-[240px]).",
+  "rca of the issue": "No bugs. All 7 Phase-6 review items pass. (1) LEVELS array exactly 50 — verified by counting level-button-* DOM nodes and confirming level-button-{51,75,91,100} don't exist. (2) L1 minCells=16 + blockIdx*4 = 16 for block 0; pickWords picks longer words preferentially so cells=19 → 17 placed → ≥16 ✓. (3,4) word_search untouched, headers correct on L6 & L50. (5) WordCircle 200px confirmed visually & via DOM; solving DROM on L1 progresses 0/4→1/4 and fills 17 cells with letter content. (6) Block 2 target=5 satisfied on L11. (7) Mobile L1 fits 414×800 with no scroll. Anagram removal clean — no imports, no routes, no console errors."
+}

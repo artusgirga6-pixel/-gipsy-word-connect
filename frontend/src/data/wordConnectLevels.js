@@ -1,24 +1,20 @@
-// 50 Word Connect levels. Each level has a curated letter pool. Words are
-// auto-derived from a master Romani vocabulary so that every level satisfies
-// the minimum-word requirement and progresses in difficulty.
-//
-// Level 1: ≥4 words.  Progresses by +1 word every ~10 levels.
+// 25 Word Connect levels. Each level provides a curated letter pool. Words are
+// auto-derived from the master Romani vocabulary so that level 1 has exactly
+// 4 words totalling ≥16 crossword cells, and word counts/cells grow over time.
 
-// ---- Master Romani vocabulary (uppercase, no diacritics) ----
-// Each entry is a valid Romani word; many share letters so multiple words can
-// be formed from a single letter pool.
 const MASTER_VOCAB = [
   // 3-letter
   "ROM","DAD","DAJ","KAM","MAR","DAR","RAT","KER","ZOR","BAR","KAN","MAS","MOL","NAM","RAS","TAR",
-  "JEK","DUJ","TRI","BUT","MEK","JAJ","DZA","AJS","KAJ","AKO","RAI",
+  "JEK","DUJ","TRI","BUT","MEK","JAJ","KAJ","AKO","RAI","JON","JIN","DOK",
   // 4-letter
   "ROMA","DROM","MARO","KHAM","KHER","KAMA","KANA","JAKH","JILO","CHAJ","CHIB","PHEN","KARO","AMEN",
   "MIRO","MORE","TUKE","DARA","RAMA","DOMA","KANI","KAMI","ZORI","BARI","BARO","TIKO","NEVO","SAVO",
+  "ROMI","ROMI","KAVE","BAJA","DJIV","DROM","NAJI","RADO","KAMO","JANO",
   // 5-letter
   "AMARO","ROMNI","DEVEL","KAMAV","ROMAN","AKANA","TIKNO","MANGE","BACHT","ANDRE","LACHO","PHRAL",
-  "CHAVO","KAMEN","ROMRA","DEVLA","SAVRE","MIROL",
+  "CHAVO","KAMEN","ROMRA","DEVLA","SAVRE","BARJA","JIKHA",
   // 6-letter
-  "ROMALE","ROMANI","DEVLES","BARVAL","MANUSH","SUKAR","ROMORA","DZUKEL","PHURDO","KHELDO",
+  "ROMALE","ROMANI","DEVLES","BARVAL","MANUSH","SUKAR","ROMORA","DZUKEL","PHURDO","KHELDO","KAMAVA",
   // 7-letter
   "ROMANES","BAKHTAL","GILJAVA","DEVLESA","BACHTAL","KAMAVAS","ROMALEN",
   // 8-letter
@@ -45,115 +41,93 @@ function subwords(pool, minLen = 3) {
     if (seen.has(w)) continue;
     if (canForm(w, pool)) { seen.add(w); out.push(w); }
   }
-  // Always include the pool itself as a word if it's in the vocab
   return out.sort((a, b) => a.length - b.length || a.localeCompare(b));
 }
 
-// Pool definitions. Each pool's letter string is chosen so that subwords()
-// returns at least targetWords() entries.
+// Pick `target` words preferring longer ones so total cell count grows.
+function pickWords(pool, target, minTotalCells = 0) {
+  const all = subwords(pool);
+  if (all.length === 0) return [];
+  // Sort longest first (more cells), tiebreak shortest if we already have enough cells
+  const byLen = [...all].sort((a, b) => b.length - a.length);
+  const picked = [];
+  let cells = 0;
+  for (const w of byLen) {
+    if (picked.length >= target && cells >= minTotalCells) break;
+    if (!picked.includes(w)) {
+      picked.push(w);
+      cells += w.length;
+    }
+  }
+  // If we still under target word count, append shorter remaining words
+  if (picked.length < target) {
+    for (const w of all) {
+      if (picked.length >= target) break;
+      if (!picked.includes(w)) picked.push(w);
+    }
+  }
+  return picked;
+}
+
+// 25 letter-pool definitions, each in a block of 5 with growing difficulty.
+// Block 1 (lvl 1-5): 4 words.  Block 2 (11-15): 5.  Block 3 (21-25): 6.
+// Block 4 (31-35): 7.  Block 5 (41-45): 8.
 const POOLS = [
-  // Level 1-5 (target 4 words minimum)
-  { letters: "KAMARO",  shape: "rect",    theme: "Familija" },     // KAM,ROM,KAMA,KARO,MARO,AMARO
-  { letters: "DROMAR",  shape: "heart",   theme: "Drom" },         // DAR,MAR,ROM,DROM,MARO
-  // L3 anagram
-  { letters: "ROMNIKA", shape: "diamond", theme: "Romni" },        // KAM,KAN,RAM,ROM,ROMA,ROMAN,ROMNI
-  { letters: "KHERAM",  shape: "rhombus", theme: "Kher" },         // KAM,KER,MAR,RAM,KHAM,KHER,KAMA,KARO
+  // Block 1 — 4 words
+  { letters: "DROMARO",  shape: "rect",    theme: "Drom" },         // L1: must give 4 words & ≥16 cells
+  { letters: "ROMNIKA",  shape: "heart",   theme: "Romnika" },
+  { letters: "DEVLESA",  shape: "diamond", theme: "Devel" },
+  { letters: "KHERAMI",  shape: "rhombus", theme: "Kher" },
+  { letters: "BACHTAR",  shape: "star",    theme: "Bacht" },
 
-  // Level 6-10 wait — block 6-10 is word_search. So next word_connect block is 11-15.
-  // Anagrams take levels 3,13,23,... in code; we still need 4 word_connect entries per non-anagram slot.
+  // Block 2 — 5 words (lvl 11-15)
+  { letters: "AMARODK",   shape: "heart",   theme: "Amaro" },
+  { letters: "ROMNIKAL",  shape: "rect",    theme: "Romnikal" },
+  { letters: "DEVLEKAR",  shape: "diamond", theme: "Devlekar" },
+  { letters: "DEVLAMAR",  shape: "plus",    theme: "Devlamar" },
+  { letters: "BACHTAROM", shape: "rhombus", theme: "Bachtarom" },
 
-  // Level 11-15 (target 5 words)
-  { letters: "AMAROD",  shape: "heart",   theme: "Drom" },         // ROM,DAR,MAR,DROM,MARO,AMARO
-  { letters: "ROMNICA", shape: "rect",    theme: "Romnica" },      // KAM,KAN,ROM,ROMA,ROMNI
-  // L13 anagram
-  { letters: "DEVLESA", shape: "diamond", theme: "Devel" },        // DAR,DEV(no in vocab→use)...
-  { letters: "PHRALAJ", shape: "plus",    theme: "Phral" },        // PHRAL,JAJ,RAS,RAJ?...
+  // Block 3 — 6 words (lvl 21-25)
+  { letters: "ROMALENA",   shape: "star",    theme: "Romalena" },
+  { letters: "KAMAVELI",   shape: "heart",   theme: "Kamaveli" },
+  { letters: "DROMALEN",   shape: "rect",    theme: "Dromalen" },
+  { letters: "ROMANIPE",   shape: "diamond", theme: "Romanipe" },
+  { letters: "BACHTAMIR",  shape: "plus",    theme: "Bachtamir" },
 
-  // Level 21-25 (target 5-6 words)
-  { letters: "BACHTAR",   shape: "star",    theme: "Bacht" },      // BAR,TAR,RAT,RAS,BACHT,BACHTA?
-  { letters: "ROMALEN",   shape: "heart",   theme: "Romalen" },    // ROM,ROMA,ROMAN,ROMALE,ROMALEN
-  // L23 anagram
-  { letters: "KAMAVELI",  shape: "rect",    theme: "Kamav" },      // KAM,KAMA,KAMI,KAMAV,KAMEN?
-  { letters: "DROMALE",   shape: "rhombus", theme: "Drom" },       // ROM,DAR,DROM,MARO,ROMA,ROMALE
+  // Block 4 — 7 words (lvl 31-35)
+  { letters: "DEVLESKARI", shape: "heart",   theme: "Devleskari" },
+  { letters: "KHANGERI",   shape: "diamond", theme: "Khangeri" },
+  { letters: "ROMANIPEN",  shape: "star",    theme: "Romanipen" },
+  { letters: "KAMAVASA",   shape: "plus",    theme: "Kamavas" },
+  { letters: "PHURDOMAN",  shape: "rhombus", theme: "Phurdoman" },
 
-  // Level 31-35 (target 6 words)
-  { letters: "ROMANIPE",  shape: "heart",   theme: "Romanipe" },   // many subwords
-  { letters: "BACHTALI",  shape: "star",    theme: "Bachtali" },
-  // L33 anagram
-  { letters: "DEVLESKO",  shape: "diamond", theme: "Devleskero" },
-  { letters: "KHANGERI",  shape: "plus",    theme: "Khangeri" },
-
-  // Level 41-45 (target 6-7)
-  { letters: "ROMANIPEN",  shape: "heart",   theme: "Romanipen" },
-  { letters: "KAMAVASA",   shape: "rhombus", theme: "Kamavas" },
-  // L43 anagram
-  { letters: "PHURIPEN",   shape: "star",    theme: "Phuripen" },
-  { letters: "DEVLESKER",  shape: "rect",    theme: "Devlesker" },
-
-  // Level 51-55 (target 7)
+  // Block 5 — 8 words (lvl 41-45)
   { letters: "BACHTALIPE",  shape: "heart",   theme: "Bachtalipe" },
   { letters: "ROMALENGE",   shape: "diamond", theme: "Romalenge" },
-  // L53 anagram
-  { letters: "DEVLESKERO",  shape: "plus",    theme: "Devleskero" },
-  { letters: "PHRALIPEN",   shape: "star",    theme: "Phralipen" },
-
-  // Level 61-65 (target 7-8)
-  { letters: "ROMALENCA",   shape: "rect",    theme: "Romalenca" },
-  { letters: "BACHTALOSI",  shape: "rhombus", theme: "Bachtaloci" },
-  // L63 anagram
-  { letters: "KHANGERIO",   shape: "heart",   theme: "Khangerio" },
-  { letters: "DEVLESKERA",  shape: "diamond", theme: "Devleskera" },
-
-  // Level 71-75 (target 8)
-  { letters: "ROMANIPENA",  shape: "heart",   theme: "Romanipena" },
-  { letters: "BACHTALIPEN", shape: "star",    theme: "Bachtalipen" },
-  // L73 anagram
-  { letters: "DEVLESKERIO", shape: "plus",    theme: "Devleskerio" },
-  { letters: "PHURIPENSA",  shape: "diamond", theme: "Phuripensa" },
-
-  // Level 81-85 (target 8-9)
-  { letters: "ROMANIPENCA",   shape: "rect",   theme: "Romanipenca" },
-  { letters: "BACHTALIPESA",  shape: "heart",  theme: "Bachtalipesa" },
-  // L83 anagram
-  { letters: "DEVLESKERONE",  shape: "rhombus", theme: "Devleskerone" },
-  { letters: "ROMALENGERO",   shape: "star",   theme: "Romalengero" },
-
-  // Level 91-95 (target 9-10)
-  { letters: "ROMANIPENESA",   shape: "heart",   theme: "Romanipenesa" },
-  { letters: "BACHTALIPENESA", shape: "diamond", theme: "Bachtalipenesa" },
-  // L93 anagram
-  { letters: "DEVLESKERINESA", shape: "plus",    theme: "Devleskerinesa" },
-  { letters: "ROMALENGERESA",  shape: "star",    theme: "Romalengeresa" },
+  { letters: "ROMALENDEV",  shape: "plus",    theme: "Romalendev" },
+  { letters: "ROMANIPENA",  shape: "star",    theme: "Romanipena" },
+  { letters: "PHRALIPENI",  shape: "rect",    theme: "Phralipen" },
 ];
 
-// Number of word_connect levels we need (50 minus 10 anagram = 40).
-// POOLS above provides 40 entries (4 per block × 10 blocks).
-// targetWords grows from 4 → 10 by block.
-function targetWordsForBlock(blockIdx /* 0..9 */) {
-  // blockIdx 0 (lvl 1-5): 4 words; +1 every 2 blocks.
-  return Math.min(10, 4 + Math.floor(blockIdx / 1.5));
+function targetForBlock(blockIdx) {
+  return 4 + blockIdx; // 4,5,6,7,8 by block 0..4
+}
+
+function minCellsForBlock(blockIdx) {
+  return 16 + blockIdx * 4; // 16,20,24,28,32
 }
 
 export const WORD_CONNECT_LEVELS = POOLS.map((pool, i) => {
   const letters = pool.letters.toUpperCase();
-  const allSubs = subwords(letters);
-  const blockIdx = Math.floor(i / 4); // 4 word_connect entries per block of 5 (excl. anagram)
-  const target = targetWordsForBlock(blockIdx);
-  // Pick shortest-first up to target, but always include the longest pool word if available.
-  const picked = [];
-  for (const w of allSubs) {
-    if (picked.length >= target) break;
-    picked.push(w);
-  }
-  // If we still have fewer than target, append longer subwords already in the list
-  // (allSubs is sorted shortest first; longer ones already considered).
-  // As a safety net, ensure at least 3 words for early levels.
-  const finalWords = picked.length >= 3 ? picked : allSubs;
+  const blockIdx = Math.floor(i / 5);
+  const targetWords = targetForBlock(blockIdx);
+  const minCells = minCellsForBlock(blockIdx);
+  const words = pickWords(letters, targetWords, minCells);
   return {
     type: "word_connect",
     sourceIndex: i,
     letters,
-    words: finalWords,
+    words,
     shape: pool.shape,
     theme: pool.theme,
   };

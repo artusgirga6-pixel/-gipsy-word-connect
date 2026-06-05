@@ -17,11 +17,11 @@ export default function WordCircle({ letters, onSubmit, disabled }) {
   const draggingRef = useRef(false);
   const pointerStartRef = useRef(null);
 
-  const size = 260;
+  const size = 200;
   const cx = size / 2;
   const cy = size / 2;
-  const ringR = size / 2 - 32;
-  const letterR = N <= 4 ? 26 : N <= 6 ? 22 : N <= 8 ? 19 : 16;
+  const ringR = size / 2 - 26;
+  const letterR = N <= 4 ? 22 : N <= 6 ? 18 : N <= 8 ? 16 : 14;
 
   const positions = useMemo(() => {
     return letters.map((_, i) => {
@@ -140,7 +140,7 @@ export default function WordCircle({ letters, onSubmit, disabled }) {
     : "";
 
   return (
-    <div className="w-full max-w-[260px] sm:max-w-[300px] mx-auto select-none" data-testid="word-circle">
+    <div className="w-full max-w-[200px] sm:max-w-[240px] mx-auto select-none" data-testid="word-circle">
       {/* Active word preview */}
       <div className="text-center mb-2 min-h-[36px]">
         <div
@@ -213,7 +213,7 @@ export default function WordCircle({ letters, onSubmit, disabled }) {
           onClick={handleSubmitTap}
           data-testid="word-submit"
           disabled={selected.length < 2}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white text-[#2D2323] font-black text-sm border-4 border-[#2D2323] shadow-md disabled:opacity-50"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white text-[#2D2323] font-black text-xs border-[3px] border-[#2D2323] shadow-md disabled:opacity-50"
           style={{ fontFamily: "Fredoka, sans-serif" }}
         >
           OK

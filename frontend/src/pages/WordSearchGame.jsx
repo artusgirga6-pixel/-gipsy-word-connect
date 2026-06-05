@@ -181,7 +181,7 @@ export default function WordSearchGame() {
     } else {
       // Normal level: skip reveal, go straight to ad → next
       playAd("interstitial", () => {
-        if (level.id < 100) navigate(`/level/${level.id + 1}`);
+        if (level.id < 50) navigate(`/level/${level.id + 1}`);
         else navigate("/");
       });
     }
@@ -190,7 +190,7 @@ export default function WordSearchGame() {
   const continueAfterReveal = () => {
     setRevealOpen(false);
     playAd("interstitial", () => {
-      if (level.id < 100) navigate(`/level/${level.id + 1}`);
+      if (level.id < 50) navigate(`/level/${level.id + 1}`);
       else navigate("/");
     });
   };
@@ -219,7 +219,7 @@ export default function WordSearchGame() {
           </Button>
           <div className="text-center flex-1 min-w-0">
             <div className="text-[#D92525] uppercase tracking-[0.18em] text-[10px] sm:text-xs font-bold">
-              Rango {level.id} / 100 · {level.gridSize}×{level.gridSize}{level.isBonus ? " · BONUS" : ""}
+              Rango {level.id} / 50 · {level.gridSize}×{level.gridSize}{level.isBonus ? " · BONUS" : ""}
             </div>
             <h1
               className="text-xl sm:text-3xl font-bold text-[#2D2323] truncate"
@@ -310,7 +310,7 @@ export default function WordSearchGame() {
         bestSeconds={bestTime}
         onContinue={continueAfterReveal}
         onHome={() => navigate("/")}
-        nextLabel={level.id === 100 ? "Gata" : "Aver rango"}
+        nextLabel={level.id === 50 ? "Gata" : "Aver rango"}
       />
       <AdModal open={adOpen} reason={adReason} onComplete={onAdComplete} />
     </div>
