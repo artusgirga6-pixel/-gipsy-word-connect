@@ -1,27 +1,54 @@
-// 25 Word Connect levels. Each level provides a curated letter pool. Words are
-// auto-derived from the master Romani vocabulary so that level 1 has exactly
-// 4 words totalling ≥16 crossword cells, and word counts/cells grow over time.
+// 25 Word Connect levels — using the authentic Romani vocabulary supplied by
+// the app owner. All diacritics are normalised to ASCII uppercase for puzzle
+// cells (display layer can still render the original orthography for hints).
 
+// ---- Master Romani vocabulary (uppercase, no diacritics) ----
+// č→C, š→S, ž→Z, ť/ď→T/D, á/í/é/ú→A/I/E/U.  Verified against owner-supplied list.
 const MASTER_VOCAB = [
   // 3-letter
-  "ROM","DAD","DAJ","KAM","MAR","DAR","RAT","KER","ZOR","BAR","KAN","MAS","MOL","NAM","RAS","TAR",
-  "JEK","DUJ","TRI","BUT","MEK","JAJ","KAJ","AKO","RAI","JON","JIN","DOK",
+  "BAL","BAR","DAD","DAJ","DAR","GAT","JAK","KAN","LON","ROM","KAJ","ROV","COR","MOL",
   // 4-letter
-  "ROMA","DROM","MARO","KHAM","KHER","KAMA","KANA","JAKH","JILO","CHAJ","CHIB","PHEN","KARO","AMEN",
-  "MIRO","MORE","TUKE","DARA","RAMA","DOMA","KANI","KAMI","ZORI","BARI","BARO","TIKO","NEVO","SAVO",
-  "ROMI","ROMI","KAVE","BAJA","DJIV","DROM","NAJI","RADO","KAMO","JANO",
+  "VAST","PHUV","THUL","GOJA","BALO","CAVO","CHON","CORO","DRAK","DROM","GRAJ","JILO",
+  "KAST","KALO","LOLO","LOVE","MARO","PANI","SERO","THUD","GULO","DOMA","RADO","KHAM",
+  "MACO","SUNO","PHOR","MATO",
   // 5-letter
-  "AMARO","ROMNI","DEVEL","KAMAV","ROMAN","AKANA","TIKNO","MANGE","BACHT","ANDRE","LACHO","PHRAL",
-  "CHAVO","KAMEN","ROMRA","DEVLA","SAVRE","BARJA","JIKHA",
+  "MACKA","ROMNI","LINAJ","BAKRO","CHURI","GADZO","KHERE","KHERA","PHURI","PHURO",
+  "SUKAR","BERSA","SASTO","PHRAL","CIKNO","JEVEN","LACHO","MANUS","PARNO","TERNO",
+  "ROVEL","SOVEL","MARDO","LACES","VUDAR","HUNDRY",
   // 6-letter
-  "ROMALE","ROMANI","DEVLES","BARVAL","MANUSH","SUKAR","ROMORA","DZUKEL","PHURDO","KHELDO","KAMAVA",
+  "MATORO","MELALO","ROMNORI","COROR0","BESAVA","MULORO","KORORO","ASAVA","ROVAVA",
+  "KERAVA","TATORO","PINDRE","VASTA",
   // 7-letter
-  "ROMANES","BAKHTAL","GILJAVA","DEVLESA","BACHTAL","KAMAVAS","ROMALEN",
+  "BARVALO","CHAVORO","DIKHAVA","KHAMORO","MURSORO","SUMNAKO","KANDINO","SKAMIET",
+  "PIJAKOS","CIRIKLO",
   // 8-letter
-  "ROMANIPE","BACHTALO","KHANGERI","PHURIPEN","PHRALIPE",
+  "BACHTALO","TELEVIZA",
   // 9-letter
-  "ROMANIPEN","ROMALENGE","DEVLESKERO","BACHTALIPE","PHRALIPEN",
+  "MURDARAV",
+  // 11-letter
+  "NASVALIPEN",
 ];
+
+// Slovak translations for hint/popup display (optional UI use)
+export const WORD_TRANSLATIONS = {
+  BAL:"vlas",BAR:"kameň",DAD:"otec",DAJ:"mama",DAR:"strach",GAT:"košeľa",JAK:"oko",
+  KAN:"ucho",LON:"soľ",ROM:"muž",KAJ:"kde",ROV:"plač",COR:"zlodej",MOL:"víno",
+  VAST:"ruka",PHUV:"zem",THUL:"maslo",GOJA:"plnené črevá",BALO:"prasa",CAVO:"chlapec",
+  CHON:"mesiac",CORO:"chudobný",DRAK:"hrozno",DROM:"cesta",GRAJ:"kôň",JILO:"srdce",
+  KAST:"drevo",KALO:"čierny",LOLO:"červený",LOVE:"peniaze",MARO:"chlieb",PANI:"voda",
+  SERO:"hlava",THUD:"mlieko",GULO:"sladký",DOMA:"doma",RADO:"rád",KHAM:"slnko",
+  MACO:"ryba",SUNO:"sen",PHOR:"pero",MATO:"opitý",MACKA:"mačka",ROMNI:"žena",
+  LINAJ:"leto",BAKRO:"baran",CHURI:"nôž",GADZO:"neróm",KHERE:"doma",KHERA:"domy",
+  PHURI:"stará",PHURO:"starý",SUKAR:"pekný",BERSA:"roky",SASTO:"zdravý",PHRAL:"brat",
+  CIKNO:"malý",JEVEN:"zima",LACHO:"dobrý",MANUS:"človek",PARNO:"biely",TERNO:"mladý",
+  ROVEL:"plače",SOVEL:"spí",MARDO:"bitý",LACES:"páči sa",VUDAR:"dvere",HUNDRY:"oblečenie",
+  MATORO:"opitý",MELALO:"špinavý",BARVALO:"bohatý",CHAVORO:"dieťatko",DIKHAVA:"vidím",
+  KHAMORO:"slniečko",MURSORO:"chlapček",ROMNORI:"ženička",BESAVA:"bývam",MULORO:"duch",
+  KORORO:"slepý",ASAVA:"smejem sa",ROVAVA:"plačem",KERAVA:"robím",TATORO:"teplučko",
+  PINDRE:"nohy",VASTA:"ruky",SUMNAKO:"zlato",KANDINO:"smradľavý",SKAMIET:"stôl",
+  PIJAKOS:"pijak",CIRIKLO:"vták",BACHTALO:"šťastný",TELEVIZA:"televízor",
+  MURDARAV:"zabijem",NASVALIPEN:"choroby",NASVALO:"chorý",
+};
 
 function canForm(word, lettersStr) {
   const pool = lettersStr.split("");
@@ -44,78 +71,72 @@ function subwords(pool, minLen = 3) {
   return out.sort((a, b) => a.length - b.length || a.localeCompare(b));
 }
 
-// Pick `target` words preferring longer ones so total cell count grows.
-function pickWords(pool, target, minTotalCells = 0) {
+// Tracks words used so far so each level prefers fresh vocabulary, but words
+// can still repeat across levels when needed to meet the target count.
+const _usedAcrossLevels = new Set();
+
+function pickWords(pool, targetCount, minCells) {
   const all = subwords(pool);
-  if (all.length === 0) return [];
-  // Sort longest first (more cells), tiebreak shortest if we already have enough cells
-  const byLen = [...all].sort((a, b) => b.length - a.length);
+  const fresh = all.filter((w) => !_usedAcrossLevels.has(w))
+                   .sort((a, b) => b.length - a.length);
+  const stale = all.filter((w) => _usedAcrossLevels.has(w))
+                   .sort((a, b) => b.length - a.length);
   const picked = [];
   let cells = 0;
-  for (const w of byLen) {
-    if (picked.length >= target && cells >= minTotalCells) break;
-    if (!picked.includes(w)) {
-      picked.push(w);
-      cells += w.length;
-    }
+  // Pass 1: fresh words, longest first, up to target
+  for (const w of fresh) {
+    if (picked.length >= targetCount && cells >= minCells) break;
+    picked.push(w); cells += w.length;
   }
-  // If we still under target word count, append shorter remaining words
-  if (picked.length < target) {
-    for (const w of all) {
-      if (picked.length >= target) break;
-      if (!picked.includes(w)) picked.push(w);
-    }
+  // Pass 2: if we don't have enough yet, allow stale (repeat) words
+  for (const w of stale) {
+    if (picked.length >= targetCount && cells >= minCells) break;
+    if (!picked.includes(w)) { picked.push(w); cells += w.length; }
   }
+  picked.forEach((w) => _usedAcrossLevels.add(w));
   return picked;
 }
 
-// 25 letter-pool definitions, each in a block of 5 with growing difficulty.
-// Block 1 (lvl 1-5): 4 words.  Block 2 (11-15): 5.  Block 3 (21-25): 6.
-// Block 4 (31-35): 7.  Block 5 (41-45): 8.
+// 25 pools, 5-per-block, growing target words 4→8 and growing min cells.
 const POOLS = [
-  // Block 1 — 4 words
-  { letters: "DROMARO",  shape: "rect",    theme: "Drom" },         // L1: must give 4 words & ≥16 cells
-  { letters: "ROMNIKA",  shape: "heart",   theme: "Romnika" },
-  { letters: "DEVLESA",  shape: "diamond", theme: "Devel" },
-  { letters: "KHERAMI",  shape: "rhombus", theme: "Kher" },
-  { letters: "BACHTAR",  shape: "star",    theme: "Bacht" },
+  // Block 1 (lvl 1-5) — target 4 words, ≥16 cells
+  { letters: "DROMARO",   shape: "rect",    theme: "Drom" },
+  { letters: "JILOKHAM",  shape: "heart",   theme: "Jilo" },
+  { letters: "MARODKAJ",  shape: "diamond", theme: "Maro" },
+  { letters: "VASTAROM",  shape: "rhombus", theme: "Vast" },
+  { letters: "MARDOLAC",  shape: "star",    theme: "Mardo" },
 
-  // Block 2 — 5 words (lvl 11-15)
-  { letters: "AMARODK",   shape: "heart",   theme: "Amaro" },
-  { letters: "ROMNIKAL",  shape: "rect",    theme: "Romnikal" },
-  { letters: "DEVLEKAR",  shape: "diamond", theme: "Devlekar" },
-  { letters: "DEVLAMAR",  shape: "plus",    theme: "Devlamar" },
-  { letters: "BACHTAROM", shape: "rhombus", theme: "Bachtarom" },
+  // Block 2 (lvl 11-15) — target 5 words
+  { letters: "ROMNIKAJ",   shape: "heart",   theme: "Romni" },
+  { letters: "BAKROCAV",   shape: "rect",    theme: "Bakro" },
+  { letters: "DROMVAST",   shape: "diamond", theme: "Drom" },
+  { letters: "BARVALCO",   shape: "plus",    theme: "Barvalo" },
+  { letters: "PHRALCHO",   shape: "rhombus", theme: "Phral" },
 
-  // Block 3 — 6 words (lvl 21-25)
-  { letters: "ROMALENA",   shape: "star",    theme: "Romalena" },
-  { letters: "KAMAVELI",   shape: "heart",   theme: "Kamaveli" },
-  { letters: "DROMALEN",   shape: "rect",    theme: "Dromalen" },
-  { letters: "ROMANIPE",   shape: "diamond", theme: "Romanipe" },
-  { letters: "BACHTAMIR",  shape: "plus",    theme: "Bachtamir" },
+  // Block 3 (lvl 21-25) — target 6 words
+  { letters: "MACKAROV",    shape: "star",    theme: "Macka" },
+  { letters: "DARASUNO",    shape: "heart",   theme: "Suno" },
+  { letters: "GADZOMAR",    shape: "rect",    theme: "Gadzo" },
+  { letters: "MELALORO",    shape: "diamond", theme: "Melalo" },
+  { letters: "SUMNAKOR",    shape: "plus",    theme: "Sumnako" },
 
-  // Block 4 — 7 words (lvl 31-35)
-  { letters: "DEVLESKARI", shape: "heart",   theme: "Devleskari" },
-  { letters: "KHANGERI",   shape: "diamond", theme: "Khangeri" },
-  { letters: "ROMANIPEN",  shape: "star",    theme: "Romanipen" },
-  { letters: "KAMAVASA",   shape: "plus",    theme: "Kamavas" },
-  { letters: "PHURDOMAN",  shape: "rhombus", theme: "Phurdoman" },
+  // Block 4 (lvl 31-35) — target 7 words
+  { letters: "BARVALOC",    shape: "heart",   theme: "Barvalo" },
+  { letters: "CHAVORIM",    shape: "diamond", theme: "Chavoro" },
+  { letters: "KHAMOROS",    shape: "star",    theme: "Khamoro" },
+  { letters: "SKAMIETR",    shape: "plus",    theme: "Skamiet" },
+  { letters: "KANDINOR",    shape: "rhombus", theme: "Kandino" },
 
-  // Block 5 — 8 words (lvl 41-45)
-  { letters: "BACHTALIPE",  shape: "heart",   theme: "Bachtalipe" },
-  { letters: "ROMALENGE",   shape: "diamond", theme: "Romalenge" },
-  { letters: "ROMALENDEV",  shape: "plus",    theme: "Romalendev" },
-  { letters: "ROMANIPENA",  shape: "star",    theme: "Romanipena" },
-  { letters: "PHRALIPENI",  shape: "rect",    theme: "Phralipen" },
+  // Block 5 (lvl 41-45) — target 8 words
+  { letters: "BACHTALO",     shape: "heart",   theme: "Bachtalo" },
+  { letters: "TELEVIZA",     shape: "diamond", theme: "Televiza" },
+  { letters: "MURDARAV",     shape: "plus",    theme: "Murdarav" },
+  { letters: "DIKHAVAS",     shape: "star",    theme: "Dikhava" },
+  { letters: "NASVALIPEN",   shape: "rect",    theme: "Nasvalipen" },
 ];
 
-function targetForBlock(blockIdx) {
-  return 4 + blockIdx; // 4,5,6,7,8 by block 0..4
-}
-
-function minCellsForBlock(blockIdx) {
-  return 16 + blockIdx * 4; // 16,20,24,28,32
-}
+function targetForBlock(b) { return 4 + b; }       // 4,5,6,7,8
+function minCellsForBlock(b) { return 16 + b * 4; } // 16,20,24,28,32
 
 export const WORD_CONNECT_LEVELS = POOLS.map((pool, i) => {
   const letters = pool.letters.toUpperCase();
