@@ -261,13 +261,27 @@ function fitWords(words, gridSize, phraseClean) {
 
 export const RAW_WORD_SEARCH = RAW_LEVELS;
 
+// Build per-level word lists that emphasize uniqueness — words used in earlier
+// levels get pushed out of later levels' fitted word lists when there's enough
+// budget. The theme phrase itself stays distinct in every level.
+const _seen = new Set();
 export const WORD_SEARCH_LEVELS = RAW_LEVELS.map((lvl, idx) => {
   const phraseClean = cleanPhrase(lvl.phrase);
+  // Re-order this level's words: words not yet seen first, then seen ones
+  const fresh = [];
+  const recycled = [];
+  for (const w of lvl.words) {
+    if (_seen.has(w)) recycled.push(w);
+    else fresh.push(w);
+  }
+  const orderedSource = [...fresh, ...recycled];
+  const fitted = fitWords(orderedSource, lvl.gridSize, phraseClean);
+  fitted.forEach((w) => _seen.add(w));
   return {
     ...lvl,
     id: idx + 1,
     phraseClean,
-    words: fitWords(lvl.words, lvl.gridSize, phraseClean),
+    words: fitted,
     isMilestone: (idx + 1) % 10 === 0,
     isFinal: idx === RAW_LEVELS.length - 1,
   };

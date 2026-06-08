@@ -161,10 +161,13 @@ export default function WordCircle({ letters, onSubmit, disabled }) {
         className="relative aspect-square touch-none"
       >
         <div
-          className="absolute inset-0 rounded-full"
+          className="absolute inset-0"
           style={{
-            background: "radial-gradient(circle at 50% 40%, #FFF6D9 0%, #F5A623 70%, #D92525 100%)",
-            boxShadow: "inset 0 -8px 24px rgba(0,0,0,0.25), 0 14px 40px rgba(217,37,37,0.35)",
+            borderRadius: "50%",
+            background: "rgba(255, 255, 255, 0.55)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            boxShadow: "0 8px 30px rgba(0,0,0,0.18), inset 0 0 0 1px rgba(255,255,255,0.6)",
           }}
         />
         <svg viewBox={`0 0 ${size} ${size}`} className="absolute inset-0 w-full h-full">
@@ -188,8 +191,8 @@ export default function WordCircle({ letters, onSubmit, disabled }) {
                   cx={x}
                   cy={y}
                   r={letterR}
-                  fill={isOn ? "#1E3A8A" : "#FFFBF0"}
-                  stroke="#2D2323"
+                  fill={isOn ? "#1E3A8A" : "transparent"}
+                  stroke={isOn ? "#1E3A8A" : "transparent"}
                   strokeWidth={3}
                 />
                 <text
@@ -197,7 +200,7 @@ export default function WordCircle({ letters, onSubmit, disabled }) {
                   y={y}
                   textAnchor="middle"
                   dominantBaseline="central"
-                  fontSize={letterR * 1.0}
+                  fontSize={letterR * 1.3}
                   fontWeight={900}
                   fill={isOn ? "#FFFBF0" : "#2D2323"}
                   style={{ fontFamily: "Fredoka, sans-serif", pointerEvents: "none" }}

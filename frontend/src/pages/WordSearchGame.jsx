@@ -257,7 +257,7 @@ export default function WordSearchGame() {
             disabled={foundWords.size === total}
             className="bg-[#D92525] hover:bg-[#B81E1E] text-white font-bold rounded-full"
           >
-            <Hammer className="w-4 h-4 mr-1" /> Cokano
+            <Hammer className="w-4 h-4 mr-1" /> Čukanos
           </Button>
           <Button
             data-testid="hint-lightbulb"

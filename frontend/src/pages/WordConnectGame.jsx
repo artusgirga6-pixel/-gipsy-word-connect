@@ -175,7 +175,15 @@ export default function WordConnectGame() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFFBF0] via-[#FFF6D9] to-[#FFE4B8] relative">
+    <div
+      className="min-h-screen relative"
+      style={{
+        backgroundImage: "url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1200&q=70)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-sky-100/30 via-transparent to-sky-100/40 pointer-events-none" />
       <div className="relative max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
         {/* Header */}
         <header className="flex items-center justify-between gap-2 mb-2">
@@ -231,7 +239,7 @@ export default function WordConnectGame() {
             title="Hammer: ad → 1 letter"
           >
             <Hammer className="w-4 h-4 mr-1" />
-            Cokano
+            Čukanos
           </Button>
           <Button
             data-testid="hint-lightbulb"
