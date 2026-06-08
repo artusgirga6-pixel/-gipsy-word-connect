@@ -67,6 +67,17 @@ This new game will be a 30-level Romani word search where completing every singl
 - **Romani congrats popup** with 11 progressive praise tiers (Lačhi goďi → Najbareder goďi pe svetos)
 - **Procedurally-generated Romani-style music** via Web Audio (10 melodies, auto-switch every 5 levels, user-toggleable, deferred until first user gesture)
 
+### Phase 7 — Feb 2026: Static deterministic Word Connect levels + full Romani vocab coverage
+- **Rewrote `/app/frontend/src/data/wordConnectLevels.js`** with fully static, deterministic, baked level data (no runtime generation):
+  - 25 Word Connect levels with monotonic growth: targets 4→5→6→7→8 across blocks of 5
+  - Every level satisfies/exceeds its target word count (verified by `/tmp/test_levels.js`)
+  - Smallest L1 = 9 words (target 4), largest L25 = 10 words (target 8)
+  - All `words[]` letters are guaranteed formable from `letters` pool
+  - Crossword placer can place every word in its assigned shape mask
+- **Injected leftover Romani vocab into `/app/frontend/src/data/wordSearchSource.js`** across L1-L24 + L30 (Velké finále): 92/92 master vocab words now appear in-game (added PHURO, PHURI, ASAVA, ROVAVA, TERNO, CHURI, PIJAKOS, GULO, BERSA, JEVEN, LINAJ, KERAVA, KHERE, KHERA, BESAVA, PINDRE, DIKHAVA, LACES, SASTO, PARNO, THUL, THUD, CHON, CIRIKLO, MULORO, GAT, LON, PHUV, NASVALIPEN, TELEVIZA, MURSORO, ROMNORI, SKAMIET, TATORO, KORORO, LOLO)
+- Backend `/api/progress/*` all green (10/10 pytest); frontend e2e all green (10/10 review items in iteration_8.json)
+
+
 ## Backlog / Next steps
 - P1: Per-level best time tracking and leaderboard view
 - P1: Optional player name in onboarding modal (currently anonymous)
