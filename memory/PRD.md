@@ -66,7 +66,6 @@ This new game will be a 30-level Romani word search where completing every singl
 - **Simulated AdModal** with 5s countdown (structured for AdMob SDK plug-in later)
 - **Romani congrats popup** with 11 progressive praise tiers (Lačhi goďi → Najbareder goďi pe svetos)
 - **Procedurally-generated Romani-style music** via Web Audio (10 melodies, auto-switch every 5 levels, user-toggleable, deferred until first user gesture)
-
 ### Phase 7 — Feb 2026: Static deterministic Word Connect levels + full Romani vocab coverage
 - **Rewrote `/app/frontend/src/data/wordConnectLevels.js`** with fully static, deterministic, baked level data (no runtime generation):
   - 25 Word Connect levels with monotonic growth: targets 4→5→6→7→8 across blocks of 5
@@ -80,6 +79,18 @@ This new game will be a 30-level Romani word search where completing every singl
 
 ## Backlog / Next steps
 - P1: Per-level best time tracking and leaderboard view
+
+### Phase 8 — Feb 2026: Localization polish (CZ / EN / RMN)
+- Pre-existing i18n infrastructure (`/app/frontend/src/i18n/I18nContext.jsx` + `translations.js`) verified end-to-end working.
+- `LanguageSwitcher` already wired on LevelSelect (header). Three languages live-switchable: 🇨🇿 Čeština, 🇬🇧 English, 🌹 Romanes.
+- Fixed three remaining hardcoded Romani strings in game pages (`WordConnectGame.jsx`, `WordSearchGame.jsx`, `AnagramGame.jsx`):
+  - Coin-reward toast `+50 ☼` → `t("game.coinReward")`
+  - Need-coins toast `Trubol 100 ☼` → `t("game.needCoins")`
+  - Invalid-word toast `Nie` / `✗ Nie` → `t("game.invalid")`
+  - "Already found" toast → `t("game.alreadyFound")`
+- Fixed EN milestone label wrapping ("MILES TONE" → "MARK") so milestone tiles render cleanly at all screen widths.
+- AnagramGame.jsx now imports + uses `useI18n` (previously had no i18n).
+
 - P1: Optional player name in onboarding modal (currently anonymous)
 - P2: Sound effects (find / complete / reveal)
 - P2: Localization toggle (CZ/EN/Romani)

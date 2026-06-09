@@ -133,14 +133,14 @@ export default function WordSearchGame() {
   const handleLightbulb = () => {
     playAd("ad_reward", () => {
       addCoins(AD_COIN_REWARD, "ad_reward").catch(() => {});
-      toast.success(`+${AD_COIN_REWARD} ☼`, { duration: 1300 });
+      toast.success(t("game.coinReward", { n: AD_COIN_REWARD }), { duration: 1300 });
     });
   };
 
   const handleBuyWord = () => {
     if (foundWords.size === total) return;
     if ((progress?.coins ?? 0) < WORD_REVEAL_COST) {
-      toast.error(`Trubol ${WORD_REVEAL_COST} ☼`, { duration: 1500 });
+      toast.error(t("game.needCoins", { n: WORD_REVEAL_COST }), { duration: 1500 });
       return;
     }
     const remainingPlacements = board.placements.filter((p) => !foundWords.has(p.word));

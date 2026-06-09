@@ -106,9 +106,9 @@ export default function WordConnectGame() {
         setTimeout(() => setCongrats(true), 200);
       }
     } else if (level.words.includes(upper)) {
-      toast(`${upper} – už nalezeno`, { duration: 900 });
+      toast(`${upper} – ${t("game.alreadyFound")}`, { duration: 900 });
     } else {
-      toast.error("✗ Nie", { duration: 700 });
+      toast.error(`✗ ${t("game.invalid")}`, { duration: 700 });
     }
   };
 
@@ -137,13 +137,13 @@ export default function WordConnectGame() {
     playAd("ad_reward", () => {
       addCoins(AD_COIN_REWARD, "ad_reward").catch(() => {});
       playSound("complete");
-      toast.success(`+${AD_COIN_REWARD} ☼`, { duration: 1300 });
+      toast.success(t("game.coinReward", { n: AD_COIN_REWARD }), { duration: 1300 });
     });
   };
 
   const handleBuyWord = () => {
     if ((progress?.coins ?? 0) < WORD_REVEAL_COST) {
-      toast.error(`Trubol ${WORD_REVEAL_COST} ☼`, { duration: 1500 });
+      toast.error(t("game.needCoins", { n: WORD_REVEAL_COST }), { duration: 1500 });
       return;
     }
     const incomplete = level.words.find((w) => !found.has(w));

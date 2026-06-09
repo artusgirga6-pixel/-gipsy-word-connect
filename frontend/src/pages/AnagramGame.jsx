@@ -8,6 +8,7 @@ import CoinsDisplay from "@/components/CoinsDisplay";
 import AdModal from "@/components/AdModal";
 import CongratsToast from "@/components/CongratsToast";
 import { useProgress } from "@/hooks/useProgress";
+import { useI18n } from "@/i18n/I18nContext";
 import { playSound } from "@/lib/audio";
 
 const AD_COIN_REWARD = 50;
@@ -18,6 +19,7 @@ export default function AnagramGame() {
   const idNum = parseInt(levelId, 10);
   const level = LEVELS.find((l) => l.id === idNum);
   const { progress, markComplete, addCoins } = useProgress();
+  const { t } = useI18n();
 
   const [selected, setSelected] = useState([]); // indices of scramble letters used
   const [letters, setLetters] = useState([]);   // initial scramble letters
@@ -84,7 +86,7 @@ export default function AnagramGame() {
         setTimeout(() => setCongrats(true), 250);
       } else {
         playSound("click");
-        toast.error("Nie", { duration: 800 });
+        toast.error(t("game.invalid"), { duration: 800 });
         setTimeout(() => setSelected([]), 600);
       }
     }
@@ -119,7 +121,7 @@ export default function AnagramGame() {
   const handleLightbulb = () => {
     playAd("ad_reward", () => {
       addCoins(AD_COIN_REWARD, "ad_reward").catch(() => {});
-      toast.success(`+${AD_COIN_REWARD} ☼`, { duration: 1300 });
+      toast.success(t("game.coinReward", { n: AD_COIN_REWARD }), { duration: 1300 });
     });
   };
 
