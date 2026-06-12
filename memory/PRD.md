@@ -92,6 +92,23 @@ This new game will be a 30-level Romani word search where completing every singl
 - AnagramGame.jsx now imports + uses `useI18n` (previously had no i18n).
 
 - P1: Optional player name in onboarding modal (currently anonymous)
+
+### Phase 9 — Feb 2026: Removed Word Connect (crossword) — Word Search only
+- **User decision**: keep only the 8-directional Word Search puzzles. Remove all criss-cross / Word Connect levels.
+- **`/app/frontend/src/data/levels.js`** rewritten: all 50 levels are now `type: "word_search"`. Source-level 30 ("Velké finále") moved to L50 as the grand final.
+- **`/app/frontend/src/pages/GameRouter.jsx`** simplified — always renders `WordSearchGame`.
+- **`/app/frontend/src/pages/LevelSelect.jsx`** — removed `word_connect` / `anagram` entries from `TYPE_ICON` and dropped the `Circle`/`Shuffle` lucide imports.
+- **Deleted files** (no remaining references):
+  - `/app/frontend/src/pages/WordConnectGame.jsx`
+  - `/app/frontend/src/pages/AnagramGame.jsx`
+  - `/app/frontend/src/data/wordConnectLevels.js`
+  - `/app/frontend/src/data/anagramLevels.js`
+  - `/app/frontend/src/components/CrosswordBoard.jsx`
+  - `/app/frontend/src/components/WordCircle.jsx`
+  - `/app/frontend/src/lib/crosswordPlacer.js`
+  - `/app/frontend/src/lib/shapeMasks.js`
+- Visually confirmed in preview: all 50 tiles show the Word Search "T" icon; milestones at 10/20/30/40/50.
+
 - P2: Sound effects (find / complete / reveal)
 - P2: Localization toggle (CZ/EN/Romani)
 - P2: Word search reverse direction visual line overlay

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { LEVELS } from "@/data/levels";
-import { Lock, Check, Crown, Sparkles, RotateCcw, Trophy, Share2, Type, Circle, Shuffle } from "lucide-react";
+import { Lock, Check, Crown, Sparkles, RotateCcw, Trophy, Share2, Type } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useProgress } from "@/hooks/useProgress";
@@ -17,8 +17,6 @@ const ONBOARDING_KEY = "romword_onboarded";
 
 const TYPE_ICON = {
   word_search: Type,
-  word_connect: Circle,
-  anagram: Shuffle,
 };
 
 export default function LevelSelect() {
