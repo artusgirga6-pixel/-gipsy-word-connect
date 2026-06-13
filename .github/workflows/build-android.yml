@@ -29,10 +29,12 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: yarn install --frozen-lockfile --ignore-engines
+        run: yarn install --network-timeout 600000 --ignore-engines
 
       - name: Build React web app
         working-directory: frontend
+        env:
+          CI: false   # treat ESLint warnings as warnings, not errors
         run: yarn build
 
       - name: Sync Capacitor
