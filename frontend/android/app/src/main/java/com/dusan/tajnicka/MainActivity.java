@@ -1,4 +1,4 @@
-package com.gipsywordconnect.app;
+package com.dusan.tajnicka;
 
 import com.getcapacitor.BridgeActivity;
 

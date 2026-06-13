@@ -2,7 +2,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.gipsywordconnect.app',
+  appId: 'com.dusan.tajnicka',
   appName: 'Gipsy Word Connect',
   webDir: 'build',
   bundledWebRuntime: false,
