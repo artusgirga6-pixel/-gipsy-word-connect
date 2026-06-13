@@ -16,26 +16,27 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            if (System.getenv("ANDROID_KEYSTORE_FILE")) {
-                signingConfig signingConfigs.release
-            }
-        }
-    }
 
     signingConfigs {
         release {
             // Filled in by GitHub Actions when env vars are present. Falls
-            // back gracefully so local debug builds still work.
+            // back gracefully so local + unsigned cloud builds still work.
             def keystoreFile = System.getenv("ANDROID_KEYSTORE_FILE")
             if (keystoreFile) {
                 storeFile     file(keystoreFile)
                 storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
                 keyAlias      System.getenv("ANDROID_KEY_ALIAS")
                 keyPassword   System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (System.getenv("ANDROID_KEYSTORE_FILE")) {
+                signingConfig signingConfigs.release
             }
         }
     }

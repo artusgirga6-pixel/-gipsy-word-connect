@@ -3,11 +3,11 @@ name: Build Android APK + AAB
 on:
   push:
     branches: [ main, master ]
-  workflow_dispatch:   # allows manual trigger from Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest   # x86_64 — Android SDK works natively here
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -43,17 +43,27 @@ jobs:
         working-directory: frontend/android
         run: chmod +x ./gradlew
 
-      # ─── Signing keystore (only if secrets are configured) ──────────────
-      - name: Decode keystore
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+      # ─── Signing keystore (only runs if all 4 secrets are configured) ───
+      - name: Decode keystore (optional, for signed AAB)
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PWD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS:    ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PWD:      ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > $RUNNER_TEMP/release.keystore
-          echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/release.keystore" >> $GITHUB_ENV
-          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
-          echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> $GITHUB_ENV
-          echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
+          if [ -n "$KEYSTORE_B64" ] && [ -n "$KEYSTORE_PWD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PWD" ]; then
+            echo "Decoding keystore for signed build..."
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/release.keystore"     >> "$GITHUB_ENV"
+            echo "ANDROID_KEYSTORE_PASSWORD=$KEYSTORE_PWD"                  >> "$GITHUB_ENV"
+            echo "ANDROID_KEY_ALIAS=$KEY_ALIAS"                             >> "$GITHUB_ENV"
+            echo "ANDROID_KEY_PASSWORD=$KEY_PWD"                            >> "$GITHUB_ENV"
+            echo "Keystore configured -> release artefacts will be SIGNED."
+          else
+            echo "Keystore secrets not set -> release artefacts will be UNSIGNED."
+            echo "Add secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD to enable signing."
+          fi
 
-      # ─── Builds ─────────────────────────────────────────────────────────
       - name: Build Debug APK
         working-directory: frontend/android
         run: ./gradlew assembleDebug --no-daemon --stacktrace
@@ -66,7 +76,6 @@ jobs:
         working-directory: frontend/android
         run: ./gradlew bundleRelease --no-daemon --stacktrace
 
-      # ─── Artifacts ──────────────────────────────────────────────────────
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
