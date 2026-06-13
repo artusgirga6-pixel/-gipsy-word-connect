@@ -19,14 +19,15 @@ android {
 
     signingConfigs {
         release {
-            // Filled in by GitHub Actions when env vars are present. Falls
-            // back gracefully so local + unsigned cloud builds still work.
-            def keystoreFile = System.getenv("ANDROID_KEYSTORE_FILE")
-            if (keystoreFile) {
-                storeFile     file(keystoreFile)
-                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
-                keyAlias      System.getenv("ANDROID_KEY_ALIAS")
-                keyPassword   System.getenv("ANDROID_KEY_PASSWORD")
+            // The keystore is committed at frontend/android/app/release.keystore
+            // (safe inside a private GitHub repo). Passwords come from
+            // GitHub Secrets via environment variables set by the workflow.
+            def keystoreFile = file("release.keystore")
+            if (keystoreFile.exists()) {
+                storeFile     keystoreFile
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: "MISSING_SECRET"
+                keyAlias      System.getenv("ANDROID_KEY_ALIAS")         ?: "gipsywordconnect"
+                keyPassword   System.getenv("ANDROID_KEY_PASSWORD")      ?: System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: "MISSING_SECRET"
             }
         }
     }
@@ -35,7 +36,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            if (System.getenv("ANDROID_KEYSTORE_FILE")) {
+            if (file("release.keystore").exists() && System.getenv("ANDROID_KEYSTORE_PASSWORD")) {
                 signingConfig signingConfigs.release
             }
         }
